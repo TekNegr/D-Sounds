@@ -1,78 +1,116 @@
-## Getting Started
+# 🎵 MusicApp – Application de Musique Java
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+Bienvenue sur MusicApp, une application de musique moderne avec interface graphique réalisée en Java et JavaFX. Le but ? Offrir aux utilisateurs une expérience riche : écouter, découvrir, gérer leur musique et profiter d’un système d’abonnement complet.
 
-## Folder Structure
 
-The workspace contains two folders by default, where:
+## 👨‍💻 Auteurs
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
-
-## Prerequis : 
-
-- JAVA 25 (**EXACTEMENT CETTE VERSION**)
-- JavaFX SDK 25.0.2 (https://gluonhq.com/products/javafx/) (**IMPORTANT** : Il faudra connaitre le chemin d'installation de JavaFX SDK pour la configuration de lancement)
-- IDE au choix 
-    - Visual Studio : Merci de changer le chemin d'installation de JavaFX SDK dans le fichier `.vscode/launch.json` à la ligne 11
-    - IntelliJ : Jsp mais vous etes des merdes à ne pas utiliser VSCode
-    - Eclipse : //
-
-## Lancer le projet :
-- Visual Studio Code : F5 ou Ctrl + F5 ou Lancer Run depuis le debbugger ou en faisant clique droit (si vous avez l'extension)
-- IntelliJ : Run
-- Eclipse : Run
-
-# Auteurs :
 - Henintsoa RAMAKAVELO // Seigneur Malveillant
-- Laksmann CHANDIRAKUMAR // Un mec vraiment bizarre
-- Emilien CORNILLION // J'ai pas encore d'avis 
+- Laksmann CHANDIRAKUMAR // Homme Bizarre
+- Emilien CORNILLION // Cornichon
 - Simon ELYNN // CancreMaxxing
+---
 
-## Features : 
+## 🚀 Prise en main rapide
 
-### Demandé par le CDC : 
-- [ ] Application de musique avec une interface graphique
-- [ ] Visiteur simple :
-    - [ ] Consulter le catalogue musical (Artistes, Albums, Chansons, Groupes, Genres)
-    - [ ] Écouter un nombre limité de morceaux (nuuuuuuuul #OpenSourceLife)
-    - [ ] Auth 
-- [ ] Abonné :
-    - [ ] Toutes les fonctionnalités du visiteur
-    - [ ] Écouter tous les morceaux
-    - [ ] Créer des playlists
-    - [ ] Recommandations personnalisées
-- [ ] Admin :
-    - [ ] Toutes les fonctionnalités de l'abonné
-    - [ ] Ajouter/Modifier/Supprimer des artistes, albums, chansons, groupes, genres
-    - [ ] Gérer les abonnements (ajouter/supprimer des abonnés, gérer les paiements)
-- [ ] Système de notation et de commentaires pour les morceaux
-- [ ] Système de recherche avancée (par artiste, album, genre, etc.)
-- [ ] Statistiques d'écoute pour les utilisateurs (top morceaux, artistes préférés, etc.) + statistiques globales (morceaux les plus écoutés, genres les plus populaires, etc.)
-- [ ] Playlist collaborative entre abonnés
-- [ ] Architecture MVC 
-- [ ] Persistance des données (base de données ou fichiers)
+### Prérequis
 
-*Rendement :*
-- [ ] Diagramme de classes UML & Logique métier
-- [ ] Diagramme MVC 
-- [ ] Le rapport demande à voir le developpement de l'application, pas juste le résultat final. Il faut montrer les étapes de développement, les choix techniques, les difficultés rencontrées et comment elles ont été surmontées.
-- [ ] Conception du GUI (maquettes -> implémentation)
+- **Java 25** _(obligatoire, version exacte)_
+- **JavaFX SDK 25.0.2**\
+  [Télécharger ici](https://gluonhq.com/products/javafx/).\
+  > **Note :** Pense à bien repérer le chemin d’installation du SDK pour la configuration du lancement local.
+- **IDE au choix** (VS Code, IntelliJ, Eclipse)
 
+---
 
-### Extras : 
+## 📦 Structure du projet
 
-// A vous de voir, mais n'oubliez pas que le projet doit être fonctionnel et que les fonctionnalités demandées par le CDC doivent être implémentées avant d'ajouter des fonctionnalités supplémentaires.
+```
+.
+├── src/         # Code source Java (MVC structuré)
+├── lib/         # Dépendances externes
+├── bin/         # Fichiers compilés générés
+├── .vscode/     # Configuration de VS Code
+└── README.md    
+```
 
-- [ ] Animations et transitions dans l'interface graphique
-- [ ] Intégration d'une API de streaming musical comme MusicAPI, mais ca peut etre payant(Spotify, Deezer, etc.) 
-- [ ] Aboonées peuvent partager leurs musiques 
-- [ ] Systeme de sync, Firebase ? 
+---
+
+## ⚙️ Configuration & Lancement
+
+### Visual Studio Code
+
+1. Ouvre le dossier du projet dans VS Code.
+2. Modifie le chemin de JavaFX si besoin dans `.vscode/launch.json` (ligne 11).
+3. Lance : `F5`, `Ctrl+F5` ou via le menu "Run".
+
+### IntelliJ IDEA
+
+- Ajoute la librairie JavaFX dans les paramètres du projet.
+- Lance via le bouton "Run".
+
+### Eclipse
+
+- Ajoute JavaFX aux Build Path et VM Arguments.
+- Lance via "Run".
+
+> **Tip :** Si tu utilises VS Code, la configuration est déjà majoritairement prête. Pour les autres IDEs, l’ajout manuel de JavaFX peut être nécessaire.
+
+---
+
+## 🎯 Fonctionnalités principales
+
+- **Catalogue musical complet** : Artistes, Albums, Chansons, Groupes, Genres
+- **Visiteur** :
+  - Navigation libre dans le catalogue
+  - Limitation d’écoute sur certains morceaux
+  - Authentification de base
+- **Abonné** :
+  - Accès illimité, création de playlists, recommandations personnalisées
+- **Admin** :
+  - Gestion avancée des contenus et utilisateurs, gestion des abonnements & paiements
+- **Système d’avis** : Notation et commentaires sur les morceaux
+- **Recherche intelligente** : Par artiste, album, genre, etc.
+- **Statistiques d’écoute** (par utilisateur et globales)
+- **Playlist collaborative** entre abonnés
+- **Architecture MVC**
+- **Persistance** (base de données ou fichier selon configuration)
+
+---
+
+## 📝 Livrables & développement
+
+- Diagrammes UML (classes, logique métier, architecture MVC)
+- Maquettes et conception du GUI
+- Rapport détaillant :
+    - Les étapes du développement
+    - Les choix techniques
+    - Les difficultés rencontrées et leur résolution
+
+---
+
+## 🌟 Fonctionnalités bonus possibles
+
+- Animations & transitions dans l’UI
+- Intégration avec une API de streaming externe (Spotify, Deezer, etc.)
+- Partage de playlists entre abonnés
+- Synchronisation cloud (ex: via Firebase)
+
+---
+
+## 📚 Ressources utiles
+
+- [Documentation JavaFX](https://openjfx.io/)
+- [VS Code Java - Setup Guide](https://code.visualstudio.com/docs/java/java-tutorial)
+- [Gestion des dépendances Java](https://github.com/microsoft/vscode-java-dependency#manage-dependencies)
+
+---
+
+## 🔗 Remarques
+
+- Assure-toi d’installer **exactement** les versions demandées (Java 25 et JavaFX 25.0.2) pour éviter tout problème de compatibilité.
+- Avant d’ajouter tes propres features, veille à terminer l’ensemble des fonctionnalités demandées par le cahier des charges.
+
+---
+
+Bon code et bonne écoute ! 🎶
