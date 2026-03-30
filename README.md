@@ -110,7 +110,7 @@ Bienvenue sur MusicApp, une application de musique moderne avec interface graphi
 
 - Assure-toi d’installer **exactement** les versions demandées (Java 25 et JavaFX 25.0.2) pour éviter tout problème de compatibilité.
 - Avant d’ajouter tes propres features, veille à terminer l’ensemble des fonctionnalités demandées par le cahier des charges.
-
+- Quand tu push, S'IL TE PLAIT CREE UNE AUTRE BRANCHE ! Je (Henin) m'occupe des merges
 ---
 
 Bon code et bonne écoute ! 🎶
