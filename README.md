@@ -207,19 +207,77 @@ src/
 
 ### VS Code
 
-1. Ouvrez le dossier du projet.
-2. Vérifiez le chemin JavaFX dans .vscode/launch.json.
-3. Lancez avec F5 ou Ctrl+F5.
+1. Ouvre le dossier du projet dans VS Code.
+2. Modifie le chemin de JavaFX si besoin dans `.vscode/launch.json` (ligne 11).
+3. Lance : `F5`, `Ctrl+F5` ou via le menu "Run".
 
-## Prochaines étapes immédiates pour ce dépôt
+### IntelliJ IDEA
 
-1. Ajouter le dossier services/strudel avec un bridge de Java vers l’environnement JavaScript de WebView.
-2. Ajouter le schéma SQLite pour motif, morceau, séquence_morceau_motif, note, journal_activité, référence_échantillon.
-3. Implémenter les squelettes de PatternController et LibraryController.
-4. Ajouter un strudel-host HTML minimal et le relier à la WebView JavaFX.
-5. Implémenter le modèle d’événements de file d’attente en mode party pour la composition collaborative.
+- Ajoute la librairie JavaFX dans les paramètres du projet.
+- Lance via le bouton "Run".
 
-## Notes
+### Eclipse
 
-Ce README reflète la direction "Strudel-first".
-L’implémentation doit rester incrémentale afin que l’application reste utilisable à chaque étape.
+- Ajoute JavaFX aux Build Path et VM Arguments.
+- Lance via "Run".
+
+> **Tip :** Si tu utilises VS Code, la configuration est déjà majoritairement prête. Pour les autres IDEs, l’ajout manuel de JavaFX peut être nécessaire.
+
+---
+
+## 🎯 Fonctionnalités principales
+
+- **Catalogue musical complet** : Artistes, Albums, Chansons, Groupes, Genres
+- **Visiteur** :
+  - Navigation libre dans le catalogue
+  - Limitation d’écoute sur certains morceaux
+  - Authentification de base
+- **Abonné** :
+  - Accès illimité, création de playlists, recommandations personnalisées
+- **Admin** :
+  - Gestion avancée des contenus et utilisateurs, gestion des abonnements & paiements
+- **Système d’avis** : Notation et commentaires sur les morceaux
+- **Recherche intelligente** : Par artiste, album, genre, etc.
+- **Statistiques d’écoute** (par utilisateur et globales)
+- **Playlist collaborative** entre abonnés
+- **Architecture MVC**
+- **Persistance** (base de données ou fichier selon configuration)
+
+---
+
+## 📝 Livrables & développement
+
+- Diagrammes UML (classes, logique métier, architecture MVC)
+- Maquettes et conception du GUI
+- Rapport détaillant :
+    - Les étapes du développement
+    - Les choix techniques
+    - Les difficultés rencontrées et leur résolution
+
+---
+
+## 🌟 Fonctionnalités bonus possibles
+
+- Animations & transitions dans l’UI
+- Intégration avec une API de streaming externe (Spotify, Deezer, etc.)
+- Partage de playlists entre abonnés
+- Synchronisation cloud (ex: via Firebase)
+
+---
+
+## 📚 Ressources utiles
+
+- [Documentation JavaFX](https://openjfx.io/)
+- [VS Code Java - Setup Guide](https://code.visualstudio.com/docs/java/java-tutorial)
+- [Gestion des dépendances Java](https://github.com/microsoft/vscode-java-dependency#manage-dependencies)
+
+---
+
+## 🔗 Remarques
+
+- Assure-toi d’installer **exactement** les versions demandées (Java 25 et JavaFX 25.0.2) pour éviter tout problème de compatibilité.
+- Avant d’ajouter tes propres features, veille à terminer l’ensemble des fonctionnalités demandées par le cahier des charges.
+- Quand tu push, S'IL TE PLAIT CREE UNE AUTRE BRANCHE ! Je (Henin) m'occupe des merges
+---
+
+Bon code et bonne écoute ! 🎶
