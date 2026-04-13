@@ -1,9 +1,9 @@
-package hellofx;
+package controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
-public class Controller {
+public class HelloFXController {
 
     @FXML
     private Label label;

@@ -6,10 +6,18 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "app.Main",
+            "projectName": "D-Sounds_19d80dc",
+            "vmArgs": "--module-path \"C:\\Users\\hsoci\\Documents\\devstar\\SDKs\\javafx-sdk-25.0.2\\lib\" --add-modules javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
             "name": "Launch App",
             "request": "launch",
-            "mainClass": "hellofx.Main",
-            "vmArgs": "--module-path \"C:\\Users\\hsoci\\Documents\\devstar\\SDKs\\javafx-sdk-25.0.2\\lib\" --add-modules javafx.controls,javafx.fxml",
+            "mainClass": "app.Main",
+            "vmArgs": "--module-path \"C:\\Users\\hsoci\\Documents\\devstar\\SDKs\\javafx-sdk-25.0.2\\lib\" --add-modules javafx.controls,javafx.fxml"
         }
     ]
 }
