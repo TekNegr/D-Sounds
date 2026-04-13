@@ -6,6 +6,15 @@
     "configurations": [
         {
             "type": "java",
+            "name": "JavaFxAuthApp",
+            "request": "launch",
+            "mainClass": "app.JavaFxAuthApp",
+            "projectName": "D-Sounds_19d80dc",
+            "vmArgs": "--module-path \"C:\\Users\\hsoci\\Documents\\devstar\\SDKs\\javafx-sdk-25.0.2\\lib\" --add-modules javafx.controls,javafx.fxml"
+
+        },
+        {
+            "type": "java",
             "name": "Main",
             "request": "launch",
             "mainClass": "app.Main",

@@ -1,23 +1,18 @@
 package app;
 
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
+import controller.AuthService;
+import model.Session;
+import persistence.UtilisateurRepository;
+import view.ConsoleAuthView;
 
-public class Main extends Application {
+import java.nio.file.Path;
 
-    @Override
-    public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("/views/hellofx.fxml"));
-        primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 400, 300));
-        primaryStage.show();
-    }
-
-
+public class Main {
     public static void main(String[] args) {
-        launch(args);
+        UtilisateurRepository repository = new UtilisateurRepository(Path.of("data", "utilisateurs.ser"));
+        Session session = new Session();
+        AuthService authService = new AuthService(repository, session);
+        ConsoleAuthView view = new ConsoleAuthView(authService);
+        view.lancer();
     }
 }
