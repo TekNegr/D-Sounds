@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dsounds.controllers.PlaylistController">
+    <top>
+        <VBox spacing="8.0">
+            <children>
+                <Label text="Playlists" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+                <Label text="Create public/private playlists and manage songs." />
+                <HBox spacing="8.0">
+                    <children>
+                        <TextField fx:id="searchField" promptText="Search songs by title, artist, genre, publisher, or album" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="clearSearchButton" text="Clear" onAction="#clearSearch" />
+                    </children>
+                </HBox>
+                <HBox spacing="8.0">
+                    <children>
+                        <Button text="Refresh" onAction="#refreshAll" />
+                        <Button text="Back to Dashboard" onAction="#switchToDashboard" />
+                    </children>
+                </HBox>
+            </children>
+            <padding>
+                <Insets top="16.0" right="20.0" bottom="12.0" left="20.0" />
+            </padding>
+        </VBox>
+    </top>
+
+    <center>
+        <HBox spacing="12.0">
+            <children>
+                <VBox spacing="8.0" prefWidth="280.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="My Visible Playlists" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <ListView fx:id="playlistListView" prefHeight="420.0" VBox.vgrow="ALWAYS" />
+                    </children>
+                    <padding>
+                        <Insets top="0.0" right="0.0" bottom="20.0" left="20.0" />
+                    </padding>
+                </VBox>
+
+                <VBox spacing="8.0" prefWidth="320.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="Playlist Details" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <TextField fx:id="playlistNameField" promptText="Playlist name" />
+                        <CheckBox fx:id="publicPlaylistCheckBox" text="Public playlist" selected="true" />
+                        <TextArea fx:id="playlistDescriptionArea" promptText="Description" prefRowCount="4" wrapText="true" />
+
+                        <HBox spacing="8.0">
+                            <children>
+                                <Button fx:id="createPlaylistButton" text="Create" onAction="#createPlaylist" />
+                                <Button fx:id="updatePlaylistButton" text="Update" onAction="#updatePlaylist" />
+                                <Button fx:id="deletePlaylistButton" text="Delete" onAction="#deletePlaylist" />
+                            </children>
+                        </HBox>
+
+                        <HBox spacing="8.0">
+                            <children>
+                                <Button fx:id="playInOrderButton" text="Play In Order" onAction="#playPlaylistInOrder" />
+                                <Button fx:id="playRandomButton" text="Play Random" onAction="#playPlaylistRandom" />
+                                <Button fx:id="repeatModeButton" text="Repeat: Off" onAction="#toggleRepeatMode" />
+                                <Button fx:id="stopPlaybackButton" text="Stop" onAction="#stopPlayback" disable="true" />
+                            </children>
+                        </HBox>
+
+                        <Label text="Songs in playlist" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <ListView fx:id="playlistSongsListView" prefHeight="170.0" VBox.vgrow="ALWAYS" />
+                        <Button fx:id="removeSongButton" text="Remove Selected Song" onAction="#removeSelectedSongFromPlaylist" />
+                    </children>
+                    <padding>
+                        <Insets top="0.0" right="0.0" bottom="20.0" left="0.0" />
+                    </padding>
+                </VBox>
+
+                <VBox spacing="8.0" prefWidth="320.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="Available Songs" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <ListView fx:id="availableSongsListView" prefHeight="420.0" VBox.vgrow="ALWAYS" />
+                        <Button fx:id="addSongButton" text="Add Selected Song to Playlist" onAction="#addSelectedSongToPlaylist" />
+                        <Label fx:id="statusLabel" text="" wrapText="true" />
+                    </children>
+                    <padding>
+                        <Insets top="0.0" right="20.0" bottom="20.0" left="0.0" />
+                    </padding>
+                </VBox>
+            </children>
+        </HBox>
+    </center>
+</BorderPane>
