@@ -2,6 +2,7 @@ package dsounds.controllers;
 
 import dsounds.App;
 import dsounds.repositories.AlbumRepository;
+import dsounds.security.RoleGuard;
 import dsounds.models.Song;
 import dsounds.models.User;
 import dsounds.repositories.SongRepository;
@@ -61,9 +62,17 @@ public class ArtistController {
 
     @FXML
     private void initialize() {
+        // Vérification de rôle : seuls les admins peuvent accéder à cette page (Laksman).
+        if (!RoleGuard.canManageCatalog(App.getAuthController().getSession())) {
+            try {
+                statusLabel.setText("Accès refusé : réservé aux administrateurs.");
+                App.setRoot("dashboard");
+            } catch (java.io.IOException ignored) {}
+            return;
+        }
         albumComboBox.setEditable(true);
         User currentUser = App.getAuthController().getSession().getCurrentUser();
-        String publisher = currentUser == null ? "visitor" : currentUser.getUsername();
+        String publisher = currentUser == null ? "visiteur" : currentUser.getUsername();
         publisherLabel.setText(publisher);
         refreshAlbumChoices();
     }
@@ -71,12 +80,12 @@ public class ArtistController {
     @FXML
     private void chooseSongFile() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Choose audio file");
+        chooser.setTitle("Choisir un fichier audio");
         chooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Supported audio", "*.mp3", "*.wav", "*.m4a")
+            new FileChooser.ExtensionFilter("Audio supporté", "*.mp3", "*.wav", "*.m4a")
         );
         chooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("All files", "*.*")
+            new FileChooser.ExtensionFilter("Tous les fichiers", "*.*")
         );
 
         Stage currentStage = (Stage) titleField.getScene().getWindow();
@@ -106,7 +115,7 @@ public class ArtistController {
         }
 
         if (title.isEmpty() || artist.isEmpty()) {
-            statusLabel.setText("Title and artist are required.");
+            statusLabel.setText("Le titre et l'artiste sont obligatoires.");
             return;
         }
 
@@ -164,7 +173,7 @@ public class ArtistController {
             clearForm();
             refreshAlbumChoices();
         } catch (IOException ex) {
-            statusLabel.setText("Could not save song: " + ex.getMessage());
+            statusLabel.setText("Impossible d'enregistrer le morceau : " + ex.getMessage());
         }
     }
 
@@ -176,12 +185,12 @@ public class ArtistController {
     @FXML
     private void chooseCoverImage() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Choose cover image");
+        chooser.setTitle("Choisir une pochette");
         chooser.getExtensionFilters().add(
             new FileChooser.ExtensionFilter("Supported image", "*.png", "*.jpg", "*.jpeg", "*.webp")
         );
         chooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("All files", "*.*")
+            new FileChooser.ExtensionFilter("Tous les fichiers", "*.*")
         );
 
         Stage currentStage = (Stage) titleField.getScene().getWindow();

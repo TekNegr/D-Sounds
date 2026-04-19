@@ -1,16 +1,36 @@
 package dsounds.controllers;
 
+import dsounds.App;
 import dsounds.models.Review;
 import dsounds.repositories.ReviewRepository;
+import dsounds.security.RoleGuard;
 
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * ReviewController — gestion des avis (notes et commentaires) sur les morceaux.
+ *
+ * <p>Les avis sont réservés aux abonnés. Les visiteurs peuvent consulter
+ * les statistiques mais ne peuvent pas soumettre ni modifier d'avis.</p>
+ *
+ * <p><b>Modifié par Laksman</b> — restriction des avis aux abonnés via RoleGuard.</p>
+ */
 public class ReviewController {
 
     private static final int MAX_COMMENT_LENGTH = 140;
 
-    public Review upsertReview(String songId, String userId, boolean liked, String comment) throws IOException {
+    /**
+     * Soumet ou met à jour un avis sur un morceau.
+     * Réservé aux abonnés — les visiteurs ne peuvent pas laisser d'avis.
+     *
+     * @throws AuthException si l'utilisateur n'est pas abonné ou admin
+     */
+    public Review upsertReview(String songId, String userId, boolean liked, String comment)
+            throws IOException, AuthException {
+        // Vérification de rôle : seuls les abonnés peuvent laisser un avis (Laksman).
+        RoleGuard.requireNotVisitor(App.getAuthController().getSession());
+
         String normalizedComment = normalizeComment(comment);
         Review review = ReviewRepository.findReview(songId, userId);
 
@@ -45,7 +65,16 @@ public class ReviewController {
         return new ReviewStats(likes, dislikes);
     }
 
-    public void deleteCurrentUserReview(String songId, String userId) throws IOException {
+    /**
+     * Supprime l'avis de l'utilisateur courant sur un morceau.
+     * Réservé aux abonnés.
+     *
+     * @throws AuthException si l'utilisateur n'est pas abonné ou admin
+     */
+    public void deleteCurrentUserReview(String songId, String userId)
+            throws IOException, AuthException {
+        // Un visiteur ne peut pas supprimer d'avis (il n'en a pas) (Laksman).
+        RoleGuard.requireNotVisitor(App.getAuthController().getSession());
         ReviewRepository.deleteReview(songId, userId);
     }
 
@@ -53,12 +82,10 @@ public class ReviewController {
         if (comment == null) {
             return "";
         }
-
         String cleaned = comment.replace("\r", " ").replace("\n", " ").trim();
         if (cleaned.length() > MAX_COMMENT_LENGTH) {
             return cleaned.substring(0, MAX_COMMENT_LENGTH);
         }
-
         return cleaned;
     }
 

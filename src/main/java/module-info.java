@@ -11,4 +11,5 @@ module dsounds {
     exports dsounds.controllers;
     exports dsounds.models;
     exports dsounds.repositories;
+    exports dsounds.security;
 }

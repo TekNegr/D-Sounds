@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    admin.fxml — Écran de gestion des comptes utilisateurs.
+    Auteur (Laksman) — gestion des rôles, restrictions admin.
+-->
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="dsounds.controllers.AdminController">
+
+    <top>
+        <VBox spacing="8.0">
+            <children>
+                <Label text="Administration — Gestion des utilisateurs"
+                       style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+                <Label text="Suspendre, réactiver ou supprimer des comptes abonnés."
+                       style="-fx-text-fill: #555;" />
+                <Label fx:id="statsLabel" text=""
+                       style="-fx-font-style: italic; -fx-text-fill: #2980b9;" />
+                <HBox spacing="8.0">
+                    <children>
+                        <Button text="⟳ Actualiser" onAction="#refreshUsers" />
+                        <Button text="⇦ Retour au tableau de bord" onAction="#switchToDashboard" />
+                    </children>
+                </HBox>
+                <Separator />
+            </children>
+            <padding>
+                <Insets top="16.0" right="20.0" bottom="8.0" left="20.0" />
+            </padding>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="10.0">
+            <children>
+                <Label text="Comptes enregistrés"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                <ListView fx:id="usersListView" prefHeight="380.0"
+                          style="-fx-font-family: monospace;" />
+            </children>
+            <padding>
+                <Insets top="0.0" right="20.0" bottom="0.0" left="20.0" />
+            </padding>
+        </VBox>
+    </center>
+
+    <bottom>
+        <VBox spacing="8.0">
+            <children>
+                <Separator />
+                <HBox spacing="10.0">
+                    <children>
+                        <Button fx:id="suspendButton" text="⏸ Suspendre"
+                                onAction="#suspendSelected"
+                                style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;"
+                                disable="true" />
+                        <Button fx:id="reactivateButton" text="▶ Réactiver"
+                                onAction="#reactivateSelected"
+                                style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;"
+                                disable="true" />
+                        <Button fx:id="deleteButton" text="✕ Supprimer"
+                                onAction="#deleteSelected"
+                                style="-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-weight: bold;"
+                                disable="true" />
+                    </children>
+                </HBox>
+                <Label fx:id="feedbackLabel" text=""
+                       wrapText="true"
+                       style="-fx-text-fill: #c0392b; -fx-font-style: italic;" />
+            </children>
+            <padding>
+                <Insets top="8.0" right="20.0" bottom="16.0" left="20.0" />
+            </padding>
+        </VBox>
+    </bottom>
+
+</BorderPane>

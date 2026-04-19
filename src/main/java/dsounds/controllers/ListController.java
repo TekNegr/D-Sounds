@@ -7,6 +7,7 @@ import dsounds.models.Song;
 import dsounds.models.Review;
 import dsounds.models.User;
 import dsounds.models.UserRole;
+import dsounds.security.RoleGuard;
 import dsounds.repositories.SongRepository;
 
 import java.io.IOException;
@@ -37,10 +38,15 @@ import javafx.scene.media.MediaPlayer;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.scene.control.Slider;
+import javafx.util.Duration;
 
 public class ListController {
 
     private static final int MAX_COMMENT_LENGTH = 140;
+
+    // Le compteur d'écoutes visiteur est partagé dans App (Laksman)
+    // pour éviter qu'un visiteur contourne la limite en changeant d'écran.
 
     @FXML
     private ListView<Song> songListView;
@@ -56,6 +62,9 @@ public class ListController {
 
     @FXML
     private Button editSongButton;
+
+    @FXML
+    private Button pauseButton; // Bouton pause ajouté par Laksman
 
     @FXML
     private ImageView coverImageView;
@@ -81,6 +90,31 @@ public class ListController {
     private final ObservableList<Song> songs = FXCollections.observableArrayList();
     private final ObservableList<Song> allSongs = FXCollections.observableArrayList();
     private MediaPlayer mediaPlayer;
+    private boolean isPaused = false; // État pause (Laksman)
+    private int currentSongIndex = -1; // Index du morceau en cours (Laksman — prev/next)
+
+    @FXML
+    private Button prevButton; // Bouton ⏮ précédent (Laksman)
+
+    @FXML
+    private Slider progressSlider; // Barre de progression (Laksman)
+
+    @FXML
+    private Label currentTimeLabel; // Temps écoulé (Laksman)
+
+    @FXML
+    private Label totalTimeLabel; // Durée totale (Laksman)
+
+    @FXML
+    private Label nowPlayingTitle; // Titre en cours (Laksman)
+
+    @FXML
+    private Label nowPlayingArtist; // Artiste en cours (Laksman)
+
+    private boolean sliderDragging = false; // Empêche le conflit slider/player
+
+    @FXML
+    private Button nextButton; // Bouton ⏭ suivant (Laksman)
     private final ReviewController reviewController = new ReviewController();
 
     @FXML
@@ -144,14 +178,14 @@ public class ListController {
     private void editSelectedSong() {
         Song selectedSong = songListView.getSelectionModel().getSelectedItem();
         if (selectedSong == null) {
-            statusLabel.setText("Select a song first.");
+            statusLabel.setText("Sélectionnez un morceau.");
             return;
         }
 
         String previousAlbum = selectedSong.getAlbum();
 
         if (!canEdit(selectedSong)) {
-            statusLabel.setText("You can only edit your own songs unless you are admin.");
+            statusLabel.setText("Vous ne pouvez modifier que vos propres morceaux, sauf si vous êtes administrateur.");
             return;
         }
 
@@ -192,7 +226,7 @@ public class ListController {
             songDetailsArea.setText(selectedSong.getDetails());
             updateCoverPreview(selectedSong);
             applySongFilter();
-            statusLabel.setText("Song updated.");
+            statusLabel.setText("Morceau mis à jour.");
         } catch (IOException ex) {
             statusLabel.setText("Could not save changes: " + ex.getMessage());
         }
@@ -202,33 +236,153 @@ public class ListController {
     private void playSelectedSong() {
         Song selectedSong = songListView.getSelectionModel().getSelectedItem();
         if (selectedSong == null) {
-            statusLabel.setText("Select a song first.");
+            statusLabel.setText("Sélectionnez un morceau.");
             return;
         }
+        int index = songs.indexOf(selectedSong);
+        playSongAtIndex(index);
+    }
 
-        Path songPath = resolveSongPath(selectedSong);
+    /**
+     * Joue le morceau à l'index donné dans la liste songs.
+     * Gère la limite visiteur et mémorise l'index courant (Laksman).
+     */
+    private void playSongAtIndex(int index) {
+        if (index < 0 || index >= songs.size()) return;
+
+        // Limite visiteur — compteur partagé dans App (Laksman).
+        if (RoleGuard.isVisitor(App.getAuthController().getSession())) {
+            if (App.getVisitorPlayCount() >= App.VISITOR_MAX_PLAYS) {
+                statusLabel.setText(
+                        "Limite visiteur atteinte : " + App.VISITOR_MAX_PLAYS
+                        + " écoutes utilisées. Connectez-vous ou créez un compte.");
+                return;
+            }
+            App.incrementVisitorPlayCount();
+        }
+
+        Song song = songs.get(index);
+        Path songPath = resolveSongPath(song);
         if (songPath == null || !Files.exists(songPath)) {
-            statusLabel.setText("Audio file not found for selected song.");
+            statusLabel.setText("Fichier audio introuvable pour : " + song.getTitle());
             return;
         }
 
         try {
             stopCurrentPlayback();
+            currentSongIndex = index;
+
+            // Sélectionner dans la liste visuelle
+            songListView.getSelectionModel().select(index);
+            songListView.scrollTo(index);
+
             Media media = new Media(songPath.toUri().toString());
             mediaPlayer = new MediaPlayer(media);
-            mediaPlayer.setOnError(() -> statusLabel.setText("Playback error: " + mediaPlayer.getError()));
-            mediaPlayer.setOnEndOfMedia(() -> statusLabel.setText("Playback finished: " + selectedSong.getTitle()));
+            App.registerPlayer(mediaPlayer);
+
+            mediaPlayer.setOnError(() ->
+                statusLabel.setText("Erreur de lecture : " + mediaPlayer.getError()));
+
+            // Barre de progression (Laksman)
+            mediaPlayer.currentTimeProperty().addListener((obs, oldT, newT) -> {
+                if (!sliderDragging && mediaPlayer != null) {
+                    Duration total = mediaPlayer.getTotalDuration();
+                    if (total != null && total.greaterThan(Duration.ZERO)) {
+                        double progress = newT.toSeconds() / total.toSeconds();
+                        if (progressSlider != null) progressSlider.setValue(progress);
+                        if (currentTimeLabel != null) currentTimeLabel.setText(formatDuration(newT));
+                    }
+                }
+            });
+            mediaPlayer.setOnReady(() -> {
+                Duration total = mediaPlayer.getTotalDuration();
+                if (totalTimeLabel != null && total != null) totalTimeLabel.setText(formatDuration(total));
+                if (progressSlider != null) progressSlider.setValue(0);
+            });
+
+            // Auto-passage au morceau suivant en fin de lecture (Laksman)
+            mediaPlayer.setOnEndOfMedia(() -> {
+                if (currentSongIndex + 1 < songs.size()) {
+                    playSongAtIndex(currentSongIndex + 1);
+                } else {
+                    statusLabel.setText("⏹ Fin de la liste.");
+                    stopCurrentPlayback();
+                }
+            });
+
             mediaPlayer.play();
-            statusLabel.setText("Playing: " + selectedSong.getSummary());
+            isPaused = false;
+            updatePauseButton();
+            updateNavButtons();
+            statusLabel.setText("▶ " + (index + 1) + "/" + songs.size()
+                    + " — " + song.getTitle());
+            if (nowPlayingTitle != null) nowPlayingTitle.setText(song.getTitle());
+            if (nowPlayingArtist != null) nowPlayingArtist.setText(
+                    song.getArtist() != null ? song.getArtist() : "");
         } catch (RuntimeException ex) {
-            statusLabel.setText("Could not play song: " + ex.getMessage());
+            statusLabel.setText("Impossible de lire le morceau : " + ex.getMessage());
         }
+    }
+
+    /**
+     * ⏮ Précédent : si > 10 sec écoulées → retour au début.
+     * Si ≤ 10 sec → morceau précédent (Laksman).
+     */
+    @FXML
+    private void playPrevious() {
+        if (mediaPlayer == null) {
+            // Rien en lecture — juste sélectionner le précédent
+            int sel = songListView.getSelectionModel().getSelectedIndex();
+            if (sel > 0) playSongAtIndex(sel - 1);
+            return;
+        }
+        double elapsed = mediaPlayer.getCurrentTime().toSeconds();
+        if (elapsed > 10.0 || currentSongIndex <= 0) {
+            // Retour au début du morceau courant
+            mediaPlayer.seek(javafx.util.Duration.ZERO);
+            isPaused = false;
+            mediaPlayer.play();
+            updatePauseButton();
+            statusLabel.setText("▶ Retour au début — " + songs.get(currentSongIndex).getTitle());
+        } else {
+            // Morceau précédent
+            playSongAtIndex(currentSongIndex - 1);
+        }
+    }
+
+    /**
+     * ⏭ Suivant : passe au morceau suivant dans la liste (Laksman).
+     */
+    @FXML
+    private void playNext() {
+        if (currentSongIndex + 1 < songs.size()) {
+            playSongAtIndex(currentSongIndex + 1);
+        } else {
+            statusLabel.setText("Vous êtes déjà sur le dernier morceau.");
+        }
+    }
+
+    /**
+     * Formate une Duration en mm:ss (Laksman).
+     */
+    private static String formatDuration(Duration d) {
+        if (d == null || d.isUnknown() || d.isIndefinite()) return "00:00";
+        int totalSec = (int) d.toSeconds();
+        return String.format("%02d:%02d", totalSec / 60, totalSec % 60);
+    }
+
+    /**
+     * Met à jour l'état des boutons prev/next (Laksman).
+     */
+    private void updateNavButtons() {
+        if (prevButton != null) prevButton.setDisable(currentSongIndex <= 0 && (mediaPlayer == null || mediaPlayer.getCurrentTime().toSeconds() <= 10));
+        if (nextButton != null) nextButton.setDisable(currentSongIndex >= songs.size() - 1);
     }
 
     @FXML
     private void stopPlayback() {
         stopCurrentPlayback();
-        statusLabel.setText("Playback stopped.");
+        statusLabel.setText("⏹ Lecture arrêtée.");
     }
 
     @FXML
@@ -318,7 +472,7 @@ public class ListController {
     private void submitReview(boolean liked) {
         Song selectedSong = songListView.getSelectionModel().getSelectedItem();
         if (selectedSong == null) {
-            statusLabel.setText("Select a song first.");
+            statusLabel.setText("Sélectionnez un morceau.");
             return;
         }
 
@@ -338,9 +492,11 @@ public class ListController {
             reviewController.upsertReview(selectedSong.getId(), currentUser.getId(), liked, comment);
             refreshSelectedSongDetails(selectedSong);
             refreshReviewPanel(selectedSong);
-            statusLabel.setText("Review saved.");
+            statusLabel.setText("Avis enregistré.");
         } catch (IOException ex) {
-            statusLabel.setText("Could not save review: " + ex.getMessage());
+            statusLabel.setText("Impossible d'enregistrer l'avis : " + ex.getMessage());
+        } catch (AuthException ex) {
+            statusLabel.setText("Accès refusé : " + ex.getMessage());
         }
     }
 
@@ -376,37 +532,27 @@ public class ListController {
         clearSearchButton.setDisable(query == null || query.isBlank());
     }
 
+    /**
+     * Verifie si l'utilisateur peut modifier ce morceau.
+     * Utilise RoleGuard pour centraliser la logique (Laksman).
+     */
     private boolean canEdit(Song song) {
-        User currentUser = App.getAuthController().getSession().getCurrentUser();
-        if (currentUser == null) {
-            return false;
-        }
-
-        if (currentUser.getRole() == UserRole.ADMIN) {
-            return true;
-        }
-
-        String publisher = song.getPublisherUsername();
-        return publisher != null && publisher.equalsIgnoreCase(currentUser.getUsername());
+        return RoleGuard.canModify(
+                App.getAuthController().getSession(),
+                song.getPublisherUsername());
     }
 
     private void updateCoverPreview(Song song) {
         Path coverPath = resolveCoverPath(song);
         if (coverPath == null || !Files.exists(coverPath)) {
             coverImageView.setImage(null);
-            coverImageView.setVisible(false);
-            coverImageView.setManaged(false);
             return;
         }
 
         try {
             coverImageView.setImage(new Image(coverPath.toUri().toString(), true));
-            coverImageView.setVisible(true);
-            coverImageView.setManaged(true);
         } catch (IllegalArgumentException ex) {
             coverImageView.setImage(null);
-            coverImageView.setVisible(false);
-            coverImageView.setManaged(false);
         }
     }
 
@@ -442,12 +588,51 @@ public class ListController {
         return null;
     }
 
+    /**
+     * Stoppe et libère proprement le MediaPlayer (Laksman).
+     */
     private void stopCurrentPlayback() {
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.dispose();
+            try {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+            } catch (Exception ignored) {}
             mediaPlayer = null;
         }
+        isPaused = false;
+        updatePauseButton();
+        updateNavButtons();
+        if (progressSlider != null) progressSlider.setValue(0);
+        if (currentTimeLabel != null) currentTimeLabel.setText("00:00");
+        if (nowPlayingTitle != null) nowPlayingTitle.setText("Sélectionnez un morceau");
+        if (nowPlayingArtist != null) nowPlayingArtist.setText("");
+    }
+
+    /**
+     * Bascule entre lecture et pause (Laksman).
+     */
+    @FXML
+    private void togglePause() {
+        if (mediaPlayer == null) return;
+        if (isPaused) {
+            mediaPlayer.play();
+            isPaused = false;
+            statusLabel.setText("▶ Lecture reprise.");
+        } else {
+            mediaPlayer.pause();
+            isPaused = true;
+            statusLabel.setText("⏸ En pause.");
+        }
+        updatePauseButton();
+    }
+
+    /**
+     * Met à jour le texte du bouton pause (Laksman).
+     */
+    private void updatePauseButton() {
+        if (pauseButton == null) return;
+        pauseButton.setDisable(mediaPlayer == null);
+        pauseButton.setText(isPaused ? "▶ Reprendre" : "⏸ Pause");
     }
 
     private void setReviewControlsDisabled(boolean disabled) {

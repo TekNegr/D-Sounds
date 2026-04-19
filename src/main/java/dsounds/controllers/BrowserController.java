@@ -7,6 +7,7 @@ import dsounds.models.Review;
 import dsounds.models.Song;
 import dsounds.models.User;
 import dsounds.models.UserRole;
+import dsounds.security.RoleGuard;
 import dsounds.repositories.AlbumRepository;
 import dsounds.repositories.PlaylistRepository;
 import dsounds.repositories.SongRepository;
@@ -47,9 +48,9 @@ import javafx.util.Callback;
 public class BrowserController {
 
     private enum BrowseType {
-        SONGS("Songs"),
+        SONGS("Morceaux"),
         ALBUMS("Albums"),
-        ARTISTS("Artists"),
+        ARTISTS("Artistes"),
         PLAYLISTS("Playlists");
 
         private final String label;
@@ -142,8 +143,12 @@ public class BrowserController {
 
     private User currentUser;
     private MediaPlayer mediaPlayer;
+    private boolean isPaused = false; // État pause (Laksman)
     private List<Song> currentPlayQueue = new ArrayList<>();
     private int currentPlayIndex = -1;
+
+    // Le compteur d'écoutes visiteur est partagé dans App (Laksman)
+    // pour éviter qu'un visiteur contourne la limite en changeant d'écran.
 
     @FXML
     public void initialize() {
@@ -379,20 +384,100 @@ public class BrowserController {
             .collect(Collectors.toList());
     }
 
+    /**
+     * ⏮ Précédent : si > 10 sec → retour au début. Sinon → morceau précédent (Laksman).
+     */
+    @FXML
+    private void playPrevious() {
+        if (mediaPlayer == null) return;
+        double elapsed = mediaPlayer.getCurrentTime().toSeconds();
+        if (elapsed > 10.0 || currentPlayIndex <= 0) {
+            // Retour au début du morceau courant
+            mediaPlayer.seek(javafx.util.Duration.ZERO);
+            isPaused = false;
+            mediaPlayer.play();
+            if (!currentPlayQueue.isEmpty() && currentPlayIndex >= 0) {
+                playStatusLabel.setText("▶ Retour au début — "
+                        + currentPlayQueue.get(currentPlayIndex).getTitle());
+            }
+        } else {
+            // Morceau précédent dans la queue
+            currentPlayIndex--;
+            playSong(currentPlayQueue.get(currentPlayIndex));
+        }
+    }
+
+    /**
+     * ⏭ Suivant : passe au morceau suivant dans la queue (Laksman).
+     */
+    @FXML
+    private void playNext() {
+        if (currentPlayQueue.isEmpty()) return;
+        if (currentPlayIndex + 1 < currentPlayQueue.size()) {
+            currentPlayIndex++;
+            playSong(currentPlayQueue.get(currentPlayIndex));
+        } else {
+            playStatusLabel.setText("Vous êtes déjà sur le dernier morceau.");
+        }
+    }
+
+    /**
+     * Stoppe et libère proprement le MediaPlayer.
+     * Appelé avant chaque nouvelle lecture et avant de quitter l'écran (Laksman).
+     */
+    private void stopAndDisposePlayer() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+            } catch (Exception ignored) {}
+            mediaPlayer = null;
+        }
+        isPaused = false;
+    }
+
+    /**
+     * Bascule entre lecture et pause (Laksman).
+     * Appelé par le bouton ⏸/▶ affiché pendant la lecture.
+     */
+    @FXML
+    private void togglePause() {
+        if (mediaPlayer == null) return;
+        if (isPaused) {
+            mediaPlayer.play();
+            isPaused = false;
+            playStatusLabel.setText("▶ Lecture reprise.");
+        } else {
+            mediaPlayer.pause();
+            isPaused = true;
+            playStatusLabel.setText("⏸ En pause.");
+        }
+    }
+
     private List<BrowseItem> searchPlaylists(String query) throws IOException {
         List<Playlist> allPlaylists = PlaylistRepository.loadAllPlaylists();
         return allPlaylists.stream()
             .filter(pl -> {
-                // Show only playlists visible to current user
-                if (pl.getVisibility() == Playlist.Visibility.PRIVATE &&
-                    !pl.getOwnerUsername().equals(currentUser.getUsername()) &&
-                    currentUser.getRole() != UserRole.ADMIN) {
-                    return false;
+                // Filtre les playlists privées selon le rôle et l'ownership (Laksman).
+                if (pl.getVisibility() == Playlist.Visibility.PRIVATE) {
+                    // Visiteur non connecté ou null : ne voit aucune playlist privée.
+                    if (currentUser == null || RoleGuard.isVisitor(App.getAuthController().getSession())) {
+                        return false;
+                    }
+                    // Admin : voit toutes les playlists.
+                    if (currentUser.getRole() == UserRole.ADMIN) {
+                        return true;
+                    }
+                    // Abonné : voit seulement ses propres playlists privées.
+                    if (pl.getOwnerUsername() == null ||
+                            !pl.getOwnerUsername().equals(currentUser.getUsername())) {
+                        return false;
+                    }
                 }
                 return query.isEmpty() || pl.getName().toLowerCase().contains(query);
             })
             .map(pl -> {
-                String visibility = pl.getVisibility() == Playlist.Visibility.PUBLIC ? "Public" : "Private";
+                String visibility = pl.getVisibility() == Playlist.Visibility.PUBLIC ? "Publique" : "Privée";
                 String subtitle = pl.getOwnerUsername() + " • " + pl.getSongIds().size() + " songs • " + visibility;
 
                 return new BrowseItem(
@@ -460,7 +545,13 @@ public class BrowserController {
 
         // Play button
         currentPlayQueue.add(song);
-        playButton.setOnAction(e -> playSong(song));
+        playButton.setOnAction(e -> {
+            if (mediaPlayer != null) {
+                togglePause(); // Pause/reprise si déjà en lecture (Laksman)
+            } else {
+                playSong(song);
+            }
+        });
         HBox actionBox = new HBox(10);
         actionBox.setPrefHeight(40);
         actionBox.setAlignment(Pos.CENTER);
@@ -533,7 +624,7 @@ public class BrowserController {
         HBox actionBox = new HBox(10);
         actionBox.setPrefHeight(40);
         actionBox.setAlignment(Pos.CENTER);
-        playButton.setText("Play All");
+        playButton.setText("▶ Tout écouter");
         playButton.setOnAction(e -> {
             currentPlayQueue = new ArrayList<>(albumSongs);
             if (!currentPlayQueue.isEmpty()) {
@@ -600,7 +691,7 @@ public class BrowserController {
         HBox actionBox = new HBox(10);
         actionBox.setPrefHeight(40);
         actionBox.setAlignment(Pos.CENTER);
-        playButton.setText("Play All");
+        playButton.setText("▶ Tout écouter");
         playButton.setOnAction(e -> {
             currentPlayQueue = new ArrayList<>(artistSongs);
             if (!currentPlayQueue.isEmpty()) {
@@ -639,9 +730,9 @@ public class BrowserController {
             }
         }
 
-        String visibility = playlist.getVisibility() == Playlist.Visibility.PUBLIC ? "Public" : "Private";
+        String visibility = playlist.getVisibility() == Playlist.Visibility.PUBLIC ? "Publique" : "Privée";
         String info = String.format(
-            "Owner: %s\nVisibility: %s\nSongs: %d",
+            "Propriétaire : %s\nVisibilité : %s\nMorceaux : %d",
             playlist.getOwnerUsername(),
             visibility,
             playlistSongs.size()
@@ -671,7 +762,7 @@ public class BrowserController {
         HBox actionBox = new HBox(10);
         actionBox.setPrefHeight(40);
         actionBox.setAlignment(Pos.CENTER);
-        playButton.setText("Play All");
+        playButton.setText("▶ Tout écouter");
         playButton.setOnAction(e -> {
             currentPlayQueue = new ArrayList<>(playlistSongs);
             if (!currentPlayQueue.isEmpty()) {
@@ -717,7 +808,7 @@ public class BrowserController {
         HBox reviewButtonBox = new HBox(8);
         reviewButtonBox.setAlignment(Pos.CENTER_LEFT);
 
-        likeButton.setText(currentReview != null && currentReview.isLiked() ? "✓ Liked" : "Like");
+        likeButton.setText(currentReview != null && currentReview.isLiked() ? "✓ Liked" : "👍 J'aime");
         likeButton.setStyle(currentReview != null && currentReview.isLiked() ?
             "-fx-text-fill: green;" : "");
         likeButton.setOnAction(e -> {
@@ -726,12 +817,12 @@ public class BrowserController {
                     reviewCommentArea.getText());
                 performSearch(); // Refresh
                 showDetail(resultsListView.getSelectionModel().getSelectedItem());
-            } catch (IOException ex) {
+            } catch (IOException | AuthException ex) {
                 ex.printStackTrace();
             }
         });
 
-        dislikeButton.setText(currentReview != null && !currentReview.isLiked() ? "✓ Disliked" : "Dislike");
+        dislikeButton.setText(currentReview != null && !currentReview.isLiked() ? "✓ Disliked" : "👎 Je n'aime pas");
         dislikeButton.setStyle(currentReview != null && !currentReview.isLiked() ?
             "-fx-text-fill: red;" : "");
         dislikeButton.setOnAction(e -> {
@@ -740,7 +831,7 @@ public class BrowserController {
                     reviewCommentArea.getText());
                 performSearch(); // Refresh
                 showDetail(resultsListView.getSelectionModel().getSelectedItem());
-            } catch (IOException ex) {
+            } catch (IOException | AuthException ex) {
                 ex.printStackTrace();
             }
         });
@@ -766,7 +857,7 @@ public class BrowserController {
                 reviewController.upsertReview(song.getId(), currentUser.getId(), liked, comment);
                 performSearch(); // Refresh
                 showDetail(resultsListView.getSelectionModel().getSelectedItem());
-            } catch (IOException ex) {
+            } catch (IOException | AuthException ex) {
                 ex.printStackTrace();
             }
         });
@@ -781,15 +872,27 @@ public class BrowserController {
     }
 
     private void playSong(Song song) {
+        // Limite visiteur — compteur partagé dans App (Laksman).
+        if (RoleGuard.isVisitor(App.getAuthController().getSession())) {
+            if (App.getVisitorPlayCount() >= App.VISITOR_MAX_PLAYS) {
+                playStatusLabel.setText(
+                        "Limite visiteur atteinte : " + App.VISITOR_MAX_PLAYS
+                        + " écoutes utilisées. Connectez-vous ou créez un compte pour une écoute illimitée.");
+                return;
+            }
+            App.incrementVisitorPlayCount();
+            playStatusLabel.setText("Visiteur : " + App.getVisitorPlayCount()
+                    + "/" + App.VISITOR_MAX_PLAYS + " écoutes utilisées.");
+        }
         try {
             if (song.getLocalStoragePath() == null || song.getLocalStoragePath().isBlank()) {
                 playStatusLabel.setText("No audio file available");
                 return;
             }
 
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-            }
+            // Arrêt et libération propre du player précédent — anti-cacophonie (Laksman).
+            stopAndDisposePlayer();
+            isPaused = false;
 
             Path audioFile = Path.of(song.getLocalStoragePath());
             if (!Files.exists(audioFile)) {
@@ -799,10 +902,11 @@ public class BrowserController {
 
             Media media = new Media(audioFile.toUri().toString());
             mediaPlayer = new MediaPlayer(media);
+            App.registerPlayer(mediaPlayer); // Enregistrement global pour stopGlobalPlayer (Laksman)
 
             mediaPlayer.setOnReady(() -> {
                 mediaPlayer.play();
-                playStatusLabel.setText("▶ Now playing: " + song.getTitle());
+                playStatusLabel.setText("▶ Lecture : " + song.getTitle());
             });
 
             mediaPlayer.setOnEndOfMedia(() -> {
@@ -811,9 +915,12 @@ public class BrowserController {
                     playSong(currentPlayQueue.get(currentPlayIndex));
                 } else {
                     currentPlayIndex = -1;
-                    playStatusLabel.setText("⏹ Finished");
+                    playStatusLabel.setText("⏹ Lecture terminée.");
+                    stopAndDisposePlayer();
                 }
             });
+            mediaPlayer.setOnError(() ->
+                playStatusLabel.setText("Erreur de lecture : " + mediaPlayer.getError()));
         } catch (Exception e) {
             playStatusLabel.setText("Error playing song: " + e.getMessage());
             e.printStackTrace();
@@ -845,6 +952,7 @@ public class BrowserController {
 
     @FXML
     private void goBack() throws IOException {
+        stopAndDisposePlayer(); // Stopper la musique avant de quitter (Laksman).
         App.setRoot("dashboard");
     }
 }

@@ -4,6 +4,7 @@ import dsounds.models.AuthSession;
 import dsounds.models.User;
 import dsounds.models.UserRole;
 import dsounds.repositories.UserRepository;
+import dsounds.security.RoleGuard;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,8 +15,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Local authentication flow adapted from src_laksman auth service.
- * OAuth providers are intentionally excluded from this controller.
+ * Local authentication flow — gestion des utilisateurs et des sessions.
+ *
+ * <p>Toutes les actions administratives (suspension, suppression) sont
+ * protégées par {@link dsounds.security.RoleGuard} en plus des contrôles existants,
+ * assurant une défense en profondeur même si l'appel vient hors de l'UI.</p>
+ *
+ * <p><b>Mis à jour par Laksman</b> — enforcement des rôles côté contrôleur.</p>
  */
 public class LocalAuthController {
 
@@ -67,13 +73,13 @@ public class LocalAuthController {
 
         User user = repository.findByUsername(username.trim());
         if (user == null) {
-            throw new AuthException("User not found.");
+            throw new AuthException("Utilisateur introuvable.");
         }
         if (!user.isActive()) {
-            throw new AuthException("Account is suspended.");
+            throw new AuthException("Ce compte est suspendu.");
         }
         if (!user.verifyPassword(password)) {
-            throw new AuthException("Incorrect password.");
+            throw new AuthException("Mot de passe incorrect.");
         }
 
         session.open(user);
@@ -84,7 +90,7 @@ public class LocalAuthController {
         User user = login(username, password);
         if (expectedRole != null && user.getRole() != expectedRole) {
             session.close();
-            throw new AuthException("This account does not have the required role.");
+            throw new AuthException("Ce compte ne possède pas le rôle requis pour cet accès.");
         }
         return user;
     }
@@ -96,7 +102,12 @@ public class LocalAuthController {
 
         while (repository.exists(finalUsername)) {
             User existing = repository.findByUsername(finalUsername);
-            if (existing != null && existing.isActive()) {
+            if (existing != null) {
+                // Vérification suspension — un compte suspendu ne peut pas se connecter via OAuth (Laksman).
+                if (!existing.isActive()) {
+                    throw new AuthException(
+                            "Ce compte est suspendu. Contactez un administrateur.");
+                }
                 session.open(existing);
                 return existing;
             }
@@ -126,23 +137,45 @@ public class LocalAuthController {
         session.close();
     }
 
+    /**
+     * Suspend a user account.
+     * Requires ADMIN role — enforced via {@link RoleGuard#requireAdmin(AuthSession)}
+     * for defense-in-depth (in addition to UI-level checks).
+     *
+     * <b>Modifié par Laksman</b> — ajout de la vérification de rôle côté contrôleur.
+     */
     public void suspendUser(String username) throws AuthException {
-        User user = findRequiredUser(username, "Unable to suspend: user not found.");
+        RoleGuard.requireAdmin(session); // Defense-in-depth: verify admin role in controller.
+        User user = findRequiredUser(username, "Impossible de suspendre : utilisateur introuvable.");
         if (user.getRole() == UserRole.ADMIN) {
-            throw new AuthException("Default administrator cannot be suspended.");
+            throw new AuthException("Le compte administrateur par défaut ne peut pas être suspendu.");
         }
         user.suspend();
     }
 
+    /**
+     * Reactivate a suspended user account.
+     * Requires ADMIN role.
+     *
+     * <b>Modifié par Laksman</b> — ajout de la vérification de rôle côté contrôleur.
+     */
     public void reactivateUser(String username) throws AuthException {
-        User user = findRequiredUser(username, "Unable to reactivate: user not found.");
+        RoleGuard.requireAdmin(session); // Defense-in-depth.
+        User user = findRequiredUser(username, "Impossible de réactiver : utilisateur introuvable.");
         user.reactivate();
     }
 
+    /**
+     * Delete a user account permanently.
+     * Requires ADMIN role — enforced here and in the UI layer.
+     *
+     * <b>Modifié par Laksman</b> — ajout de la vérification de rôle côté contrôleur.
+     */
     public void deleteUser(String username) throws AuthException {
-        User user = findRequiredUser(username, "Unable to delete: user not found.");
+        RoleGuard.requireAdmin(session); // Defense-in-depth.
+        User user = findRequiredUser(username, "Impossible de supprimer : utilisateur introuvable.");
         if (user.getRole() == UserRole.ADMIN) {
-            throw new AuthException("Default administrator cannot be deleted.");
+            throw new AuthException("Le compte administrateur par défaut ne peut pas être supprimé.");
         }
 
         repository.remove(user.getUsername());
@@ -165,43 +198,43 @@ public class LocalAuthController {
 
     private void ensureUsernameAvailable(String username) throws AuthException {
         if (repository.exists(username.trim())) {
-            throw new AuthException("This username already exists.");
+            throw new AuthException("Cet identifiant est déjà utilisé.");
         }
     }
 
     private static void validateUsername(String username) throws AuthException {
         if (username == null || username.isBlank()) {
-            throw new AuthException("Username is required.");
+            throw new AuthException("L'identifiant est obligatoire.");
         }
     }
 
     private static void validateEmail(String email) throws AuthException {
         if (email == null || email.isBlank()) {
-            throw new AuthException("Email is required.");
+            throw new AuthException("L'adresse e-mail est obligatoire.");
         }
         if (!email.contains("@")) {
-            throw new AuthException("Email format is invalid.");
+            throw new AuthException("Le format de l'adresse e-mail est invalide.");
         }
     }
 
     private static void validatePassword(String password) throws AuthException {
         if (password == null || password.isBlank()) {
-            throw new AuthException("Password is required.");
+            throw new AuthException("Le mot de passe est obligatoire.");
         }
         if (password.length() < 4) {
-            throw new AuthException("Password must contain at least 4 characters.");
+            throw new AuthException("Le mot de passe doit contenir au moins 4 caractères.");
         }
     }
 
     private static String cleanOAuthUsername(String proposedUsername) throws AuthException {
         if (proposedUsername == null || proposedUsername.isBlank()) {
-            throw new AuthException("Cannot create OAuth account without an identifier.");
+            throw new AuthException("Impossible de créer un compte OAuth sans identifiant.");
         }
         String cleaned = proposedUsername.trim().toLowerCase()
                 .replaceAll("[^a-z0-9._-]", "_")
                 .replaceAll("_+", "_");
         if (cleaned.isBlank()) {
-            throw new AuthException("Cannot derive a valid local username from OAuth profile.");
+            throw new AuthException("Impossible de déduire un identifiant valide depuis le profil OAuth.");
         }
         if (cleaned.length() < 3) {
             cleaned = cleaned + "_user";
@@ -218,7 +251,7 @@ public class LocalAuthController {
 
     private User findRequiredUser(String username, String notFoundMessage) throws AuthException {
         if (username == null || username.isBlank()) {
-            throw new AuthException("Username is required.");
+            throw new AuthException("L'identifiant est obligatoire.");
         }
         User user = repository.findByUsername(username.trim());
         if (user == null) {

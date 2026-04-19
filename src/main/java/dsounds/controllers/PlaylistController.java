@@ -32,11 +32,21 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.input.MouseButton;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import dsounds.security.RoleGuard;
+import dsounds.security.OwnershipChecker;
 
 /**
  * PlaylistController handles playlist creation, management, and song operations.
  */
 public class PlaylistController {
+
+    /**
+     * Gestionnaire d'ownership et d'accès collaboratif aux playlists.
+     * Instancié une fois par contrôleur — partage le même registre pour toute la session.
+     *
+     * <b>Ajouté par Laksman</b> — ownership checks et accès collaboratif.
+     */
+    private final OwnershipChecker ownershipChecker = new OwnershipChecker();
 
     private enum RepeatMode {
         NONE,
@@ -98,6 +108,22 @@ public class PlaylistController {
     @FXML
     private Button clearSearchButton;
 
+    // ---- Collaborator UI fields (Laksman) ----
+    @FXML
+    private javafx.scene.control.TextField collabUsernameField;
+
+    @FXML
+    private javafx.scene.control.ComboBox<String> collabRoleCombo;
+
+    @FXML
+    private javafx.scene.control.ListView<String> collabListView;
+
+    @FXML
+    private Button addCollabButton;
+
+    @FXML
+    private Button removeCollabButton;
+
     private final ObservableList<Playlist> playlists = FXCollections.observableArrayList();
     private final ObservableList<Song> availableSongs = FXCollections.observableArrayList();
     private final ObservableList<Song> playlistSongs = FXCollections.observableArrayList();
@@ -154,6 +180,12 @@ public class PlaylistController {
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applySongSearch());
 
         refreshAll();
+
+        // Initialize collaborator role combo (Laksman).
+        if (collabRoleCombo != null) {
+            collabRoleCombo.getItems().addAll("EDITOR", "VIEWER");
+            collabRoleCombo.setValue("EDITOR");
+        }
     }
 
     @FXML
@@ -175,7 +207,7 @@ public class PlaylistController {
 
             List<Playlist> loadedPlaylists = PlaylistRepository.loadAllPlaylists();
             playlists.setAll(filterVisiblePlaylists(loadedPlaylists));
-            statusLabel.setText("Playlists loaded: " + playlists.size());
+            statusLabel.setText("Playlists chargées : " + playlists.size());
 
             if (!playlists.isEmpty() && playlistListView.getSelectionModel().getSelectedItem() == null) {
                 playlistListView.getSelectionModel().selectFirst();
@@ -184,7 +216,7 @@ public class PlaylistController {
             applySongSearch();
             updatePermissions(playlistListView.getSelectionModel().getSelectedItem());
         } catch (IOException ex) {
-            statusLabel.setText("Failed to refresh playlists: " + ex.getMessage());
+            statusLabel.setText("Échec du rafraîchissement des playlists : " + ex.getMessage());
         }
     }
 
@@ -192,17 +224,18 @@ public class PlaylistController {
     private void createPlaylist() {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
-            statusLabel.setText("You must be logged in.");
+            statusLabel.setText("Vous devez être connecté.");
             return;
         }
-        if (currentUser.getRole() == UserRole.VISITOR) {
-            statusLabel.setText("Visitors cannot create playlists. Please log in.");
+        // Vérification centralisée via RoleGuard (Laksman — défense en profondeur).
+        if (!RoleGuard.canCreatePlaylist(App.getAuthController().getSession())) {
+            statusLabel.setText("Les visiteurs ne peuvent pas créer de playlists. Veuillez vous connecter.");
             return;
         }
 
         String playlistName = safeTrim(playlistNameField.getText());
         if (playlistName.isEmpty()) {
-            statusLabel.setText("Playlist name is required.");
+            statusLabel.setText("Le nom de la playlist est obligatoire.");
             return;
         }
 
@@ -215,9 +248,9 @@ public class PlaylistController {
             PlaylistRepository.savePlaylist(playlist);
             refreshAll();
             selectPlaylistById(playlist.getId());
-            statusLabel.setText("Playlist created.");
+            statusLabel.setText("Playlist créée.");
         } catch (IOException ex) {
-            statusLabel.setText("Could not create playlist: " + ex.getMessage());
+            statusLabel.setText("Impossible de créer la playlist : " + ex.getMessage());
         }
     }
 
@@ -225,18 +258,18 @@ public class PlaylistController {
     private void updatePlaylist() {
         Playlist selectedPlaylist = playlistListView.getSelectionModel().getSelectedItem();
         if (selectedPlaylist == null) {
-            statusLabel.setText("Select a playlist first.");
+            statusLabel.setText("Sélectionnez d'abord une playlist.");
             return;
         }
 
         if (!canEdit(selectedPlaylist)) {
-            statusLabel.setText("Only admins or playlist owners can update this playlist.");
+            statusLabel.setText("Seuls les administrateurs ou le propriétaire peuvent modifier cette playlist.");
             return;
         }
 
         String playlistName = safeTrim(playlistNameField.getText());
         if (playlistName.isEmpty()) {
-            statusLabel.setText("Playlist name is required.");
+            statusLabel.setText("Le nom de la playlist est obligatoire.");
             return;
         }
 
@@ -248,9 +281,9 @@ public class PlaylistController {
             PlaylistRepository.savePlaylist(selectedPlaylist);
             refreshAll();
             selectPlaylistById(selectedPlaylist.getId());
-            statusLabel.setText("Playlist updated.");
+            statusLabel.setText("Playlist mise à jour.");
         } catch (IOException ex) {
-            statusLabel.setText("Could not update playlist: " + ex.getMessage());
+            statusLabel.setText("Impossible de mettre à jour la playlist : " + ex.getMessage());
         }
     }
 
@@ -258,22 +291,23 @@ public class PlaylistController {
     private void deletePlaylist() {
         Playlist selectedPlaylist = playlistListView.getSelectionModel().getSelectedItem();
         if (selectedPlaylist == null) {
-            statusLabel.setText("Select a playlist first.");
+            statusLabel.setText("Sélectionnez d'abord une playlist.");
             return;
         }
 
         if (!canEdit(selectedPlaylist)) {
-            statusLabel.setText("Only admins or playlist owners can delete this playlist.");
+            statusLabel.setText("Seuls les administrateurs ou le propriétaire peuvent supprimer cette playlist.");
             return;
         }
 
         try {
             PlaylistRepository.deletePlaylist(selectedPlaylist.getId());
+            ownershipChecker.clearCollaborators(selectedPlaylist.getId()); // Laksman: cleanup collaborators on delete.
             refreshAll();
             clearPlaylistForm();
-            statusLabel.setText("Playlist deleted.");
+            statusLabel.setText("Playlist supprimée.");
         } catch (IOException ex) {
-            statusLabel.setText("Could not delete playlist: " + ex.getMessage());
+            statusLabel.setText("Impossible de supprimer la playlist : " + ex.getMessage());
         }
     }
 
@@ -283,12 +317,12 @@ public class PlaylistController {
         Song selectedSong = availableSongsListView.getSelectionModel().getSelectedItem();
 
         if (selectedPlaylist == null || selectedSong == null) {
-            statusLabel.setText("Select both a playlist and a song.");
+            statusLabel.setText("Sélectionnez une playlist et un morceau.");
             return;
         }
 
         if (!canEdit(selectedPlaylist)) {
-            statusLabel.setText("Only admins or playlist owners can modify this playlist.");
+            statusLabel.setText("Seuls les administrateurs ou le propriétaire peuvent modifier cette playlist.");
             return;
         }
 
@@ -296,9 +330,9 @@ public class PlaylistController {
         try {
             PlaylistRepository.savePlaylist(selectedPlaylist);
             loadPlaylistSongs(selectedPlaylist);
-            statusLabel.setText("Song added to playlist.");
+            statusLabel.setText("Morceau ajouté à la playlist.");
         } catch (IOException ex) {
-            statusLabel.setText("Could not add song: " + ex.getMessage());
+            statusLabel.setText("Impossible d'ajouter le morceau : " + ex.getMessage());
         }
     }
 
@@ -313,7 +347,7 @@ public class PlaylistController {
         }
 
         if (!canEdit(selectedPlaylist)) {
-            statusLabel.setText("Only admins or playlist owners can modify this playlist.");
+            statusLabel.setText("Seuls les administrateurs ou le propriétaire peuvent modifier cette playlist.");
             return;
         }
 
@@ -321,10 +355,84 @@ public class PlaylistController {
         try {
             PlaylistRepository.savePlaylist(selectedPlaylist);
             loadPlaylistSongs(selectedPlaylist);
-            statusLabel.setText("Song removed from playlist.");
+            statusLabel.setText("Morceau retiré de la playlist.");
         } catch (IOException ex) {
-            statusLabel.setText("Could not remove song: " + ex.getMessage());
+            statusLabel.setText("Impossible de retirer le morceau : " + ex.getMessage());
         }
+    }
+
+    /**
+     * Ajoute un collaborateur a la playlist selectionnee (Laksman).
+     * Utilise OwnershipChecker pour verifier les droits.
+     */
+    @FXML
+    private void addCollaborator() {
+        Playlist selected = playlistListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            statusLabel.setText("Sélectionnez d'abord une playlist.");
+            return;
+        }
+        if (collabUsernameField == null || collabUsernameField.getText().isBlank()) {
+            statusLabel.setText("Saisissez un nom d'utilisateur à ajouter comme collaborateur.");
+            return;
+        }
+        String username = collabUsernameField.getText().trim();
+        String roleStr = collabRoleCombo != null ? collabRoleCombo.getValue() : "EDITOR";
+        dsounds.security.OwnershipChecker.CollabRole role =
+                "VIEWER".equals(roleStr)
+                ? dsounds.security.OwnershipChecker.CollabRole.VIEWER
+                : dsounds.security.OwnershipChecker.CollabRole.EDITOR;
+        try {
+            ownershipChecker.addCollaborator(
+                    App.getAuthController().getSession(), selected, username, role);
+            statusLabel.setText("Collaborateur ajouté : " + username + " [" + roleStr + "]");
+            collabUsernameField.clear();
+            refreshCollabList(selected);
+        } catch (dsounds.controllers.AuthException e) {
+            statusLabel.setText(e.getMessage());
+        }
+    }
+
+    /**
+     * Retire le collaborateur selectionne de la playlist (Laksman).
+     */
+    @FXML
+    private void removeCollaborator() {
+        Playlist selected = playlistListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            statusLabel.setText("Sélectionnez d'abord une playlist.");
+            return;
+        }
+        String selectedCollab = collabListView != null
+                ? collabListView.getSelectionModel().getSelectedItem() : null;
+        if (selectedCollab == null || selectedCollab.isBlank()) {
+            statusLabel.setText("Sélectionnez un collaborateur à retirer.");
+            return;
+        }
+        // Extract username (format: "username [ROLE]")
+        String username = selectedCollab.contains(" [")
+                ? selectedCollab.substring(0, selectedCollab.indexOf(" [")).trim()
+                : selectedCollab.trim();
+        try {
+            ownershipChecker.removeCollaborator(
+                    App.getAuthController().getSession(), selected, username);
+            statusLabel.setText("Collaborateur retiré : " + username);
+            refreshCollabList(selected);
+        } catch (dsounds.controllers.AuthException e) {
+            statusLabel.setText(e.getMessage());
+        }
+    }
+
+    /** Rafraichit la liste des collaborateurs affichee (Laksman). */
+    private void refreshCollabList(Playlist playlist) {
+        if (collabListView == null || playlist == null) return;
+        java.util.List<String> entries = new java.util.ArrayList<>();
+        for (String name : ownershipChecker.getCollaborators(playlist.getId())) {
+            dsounds.security.OwnershipChecker.CollabRole r =
+                    ownershipChecker.getCollabRole(playlist.getId(), name);
+            entries.add(name + " [" + (r != null ? r : "?") + "]");
+        }
+        collabListView.setItems(javafx.collections.FXCollections.observableArrayList(entries));
     }
 
     @FXML
@@ -337,7 +445,7 @@ public class PlaylistController {
     private void playPlaylistInOrder() {
         Playlist selectedPlaylist = playlistListView.getSelectionModel().getSelectedItem();
         if (selectedPlaylist == null) {
-            statusLabel.setText("Select a playlist first.");
+            statusLabel.setText("Sélectionnez d'abord une playlist.");
             return;
         }
 
@@ -357,7 +465,7 @@ public class PlaylistController {
     private void playPlaylistRandom() {
         Playlist selectedPlaylist = playlistListView.getSelectionModel().getSelectedItem();
         if (selectedPlaylist == null) {
-            statusLabel.setText("Select a playlist first.");
+            statusLabel.setText("Sélectionnez d'abord une playlist.");
             return;
         }
 
@@ -428,6 +536,7 @@ public class PlaylistController {
     }
 
     private void loadPlaylistSongs(Playlist playlist) {
+        refreshCollabList(playlist); // Laksman: refresh collaborators on playlist selection.
         if (playlist == null) {
             currentPlaylistAllSongs.clear();
             applySongSearch();
@@ -444,21 +553,18 @@ public class PlaylistController {
         applySongSearch();
     }
 
+    /**
+     * Vérifie si l'utilisateur courant peut modifier la playlist sélectionnée.
+     *
+     * <p>Délègue à {@link OwnershipChecker#canEdit} qui prend en compte :
+     * admins (toujours), propriétaire, et collaborateurs EDITOR.</p>
+     *
+     * <b>Modifié par Laksman</b> — utilise OwnershipChecker pour l'ownership
+     * et la gestion collaborative.
+     */
     private boolean canEdit(Playlist playlist) {
-        User currentUser = getCurrentUser();
-        if (currentUser == null) {
-            return false;
-        }
-        if (currentUser.getRole() == UserRole.VISITOR) {
-            return false;
-        }
-
-        if (currentUser.getRole() == UserRole.ADMIN) {
-            return true;
-        }
-
-        return playlist.getOwnerUsername() != null
-                && playlist.getOwnerUsername().equalsIgnoreCase(currentUser.getUsername());
+        return ownershipChecker.canEdit(
+                App.getAuthController().getSession(), playlist);
     }
 
     private void selectPlaylistById(String playlistId) {
@@ -494,7 +600,8 @@ public class PlaylistController {
 
     private void updatePermissions(Playlist selectedPlaylist) {
         User currentUser = getCurrentUser();
-        boolean canCreate = currentUser != null && currentUser.getRole() != UserRole.VISITOR;
+        // Utilise RoleGuard pour centraliser la logique (Laksman).
+        boolean canCreate = RoleGuard.canCreatePlaylist(App.getAuthController().getSession());
         boolean editable = selectedPlaylist != null && canEdit(selectedPlaylist);
         boolean hasSongsToPlay = selectedPlaylist != null && !playlistSongs.isEmpty();
 
@@ -513,14 +620,14 @@ public class PlaylistController {
     private void playCurrentQueueSong() {
         if (playbackIndex < 0 || playbackIndex >= playbackQueue.size()) {
             stopPlaybackInternal();
-            statusLabel.setText("Playlist playback finished.");
+            statusLabel.setText("Lecture de la playlist terminée.");
             return;
         }
 
         Song currentSong = playbackQueue.get(playbackIndex);
         Path path = resolveSongPath(currentSong);
         if (path == null || !Files.exists(path)) {
-            statusLabel.setText("Missing audio file for: " + currentSong.getTitle());
+            statusLabel.setText("Fichier audio manquant pour : " + currentSong.getTitle());
             playbackIndex++;
             playCurrentQueueSong();
             return;
@@ -534,9 +641,9 @@ public class PlaylistController {
                 advancePlaybackIndex();
                 playCurrentQueueSong();
             });
-            mediaPlayer.setOnError(() -> statusLabel.setText("Playback error: " + mediaPlayer.getError()));
+            mediaPlayer.setOnError(() -> statusLabel.setText("Erreur de lecture : " + mediaPlayer.getError()));
             mediaPlayer.play();
-            statusLabel.setText("Playing playlist: " + currentSong.getSummary());
+            statusLabel.setText("Lecture de la playlist : " + currentSong.getSummary());
             updatePermissions(playlistListView.getSelectionModel().getSelectedItem());
         } catch (RuntimeException ex) {
             statusLabel.setText("Could not play song: " + ex.getMessage());

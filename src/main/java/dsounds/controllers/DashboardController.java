@@ -1,9 +1,9 @@
 package dsounds.controllers;
 
 import dsounds.App;
-import dsounds.models.AuthSession;
 import dsounds.models.User;
 import dsounds.models.UserRole;
+import dsounds.security.RoleGuard;
 
 import java.io.IOException;
 
@@ -11,68 +11,86 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
+/**
+ * DashboardController — écran principal après connexion.
+ *
+ * <p>Les boutons sont activés/désactivés selon le rôle de l'utilisateur connecté,
+ * via {@link RoleGuard}. Cela constitue la première couche de restriction UI.</p>
+ *
+ * <p><b>Modifié par Laksman</b> — restriction des boutons par rôle.</p>
+ */
 public class DashboardController {
 
-    @FXML private Label welcomeLabel;
-    @FXML private Label roleLabel;
-    @FXML private Label visitorInfoLabel;
+    @FXML
+    private Label welcomeLabel;
 
-    @FXML private Button btnArtist;
-    @FXML private Button btnLibrary;
-    @FXML private Button btnPlaylists;
-    @FXML private Button btnManageUsers;
-    @FXML private Button btnStats;
+    @FXML
+    private Button artistUploadButton;
+
+    @FXML
+    private Button adminPanelButton;
+
+    @FXML
+    private Button playlistButton;
+
+    @FXML
+    private Label roleInfoLabel;
 
     @FXML
     private void initialize() {
-        AuthSession session = App.getAuthController().getSession();
-        User user = session.getCurrentUser();
-        UserRole role = user.getRole();
+        User currentUser = App.getAuthController().getSession().getCurrentUser();
+        if (currentUser != null) {
+            welcomeLabel.setText("Bienvenue, " + currentUser.getUsername()
+                    + " (" + currentUser.getRole() + ")");
+        }
 
-        welcomeLabel.setText("Welcome, " + user.getDisplayName());
-        roleLabel.setText("Connected as: " + role.name());
+        applyRoleRestrictions();
+    }
 
-        btnArtist.setVisible(false);
-        btnArtist.setManaged(false);
-        btnLibrary.setVisible(false);
-        btnLibrary.setManaged(false);
-        btnPlaylists.setVisible(false);
-        btnPlaylists.setManaged(false);
-        btnManageUsers.setVisible(false);
-        btnManageUsers.setManaged(false);
-        btnStats.setVisible(false);
-        btnStats.setManaged(false);
-        visitorInfoLabel.setVisible(false);
-        visitorInfoLabel.setManaged(false);
+    /**
+     * Applique les restrictions de boutons selon le rôle de l'utilisateur.
+     *
+     * <ul>
+     *   <li>VISITOR : ne peut pas créer de playlists ni uploader.</li>
+     *   <li>SUBSCRIBER : peut créer des playlists, ne peut pas uploader
+     *       (réservé aux artistes/admins).</li>
+     *   <li>ADMIN : accès complet.</li>
+     * </ul>
+     *
+     * <b>Laksman</b> — restriction UI par rôle.
+     */
+    private void applyRoleRestrictions() {
+        var session = App.getAuthController().getSession();
 
-        switch (role) {
-            case ADMIN:
-                btnArtist.setVisible(true);
-                btnArtist.setManaged(true);
-                btnLibrary.setVisible(true);
-                btnLibrary.setManaged(true);
-                btnPlaylists.setVisible(true);
-                btnPlaylists.setManaged(true);
-                btnManageUsers.setVisible(true);
-                btnManageUsers.setManaged(true);
-                btnStats.setVisible(true);
-                btnStats.setManaged(true);
-                break;
+        // Le panel admin est réservé aux admins (Laksman).
+        if (adminPanelButton != null) {
+            adminPanelButton.setDisable(!RoleGuard.canManageUsers(session));
+            adminPanelButton.setOpacity(RoleGuard.canManageUsers(session) ? 1.0 : 0.45);
+        }
 
-            case SUBSCRIBER:
-                btnArtist.setVisible(true);
-                btnArtist.setManaged(true);
-                btnLibrary.setVisible(true);
-                btnLibrary.setManaged(true);
-                btnPlaylists.setVisible(true);
-                btnPlaylists.setManaged(true);
-                break;
+        // L'upload de morceaux est réservé aux admins dans cette version.
+        if (artistUploadButton != null) {
+            artistUploadButton.setDisable(!RoleGuard.canManageCatalog(session));
+            artistUploadButton.setOpacity(RoleGuard.canManageCatalog(session) ? 1.0 : 0.45);
+        }
 
-            case VISITOR:
-                visitorInfoLabel.setVisible(true);
-                visitorInfoLabel.setManaged(true);
-                visitorInfoLabel.setText("Visitor mode: limited to 5 listens, no playlists.");
-                break;
+        // Les playlists sont réservées aux abonnés et admins.
+        if (playlistButton != null) {
+            playlistButton.setDisable(!RoleGuard.canCreatePlaylist(session));
+            playlistButton.setOpacity(RoleGuard.canCreatePlaylist(session) ? 1.0 : 0.45);
+        }
+
+        // Message d'information sur le rôle.
+        if (roleInfoLabel != null) {
+            if (RoleGuard.isVisitor(session)) {
+                roleInfoLabel.setText(
+                        "Visitor mode: catalogue browsing only. "
+                      + "Log in or create an account to access playlists.");
+            } else if (RoleGuard.isAdmin(session)) {
+                roleInfoLabel.setText("Administrateur : accès complet.");
+            } else {
+                roleInfoLabel.setText("Abonné : playlists et écoute illimitée activées.");
+            }
         }
     }
 
@@ -83,6 +101,10 @@ public class DashboardController {
 
     @FXML
     private void switchToArtist() throws IOException {
+        // Double vérification côté contrôleur (Laksman — défense en profondeur).
+        if (!RoleGuard.canManageCatalog(App.getAuthController().getSession())) {
+            return; // Ne rien faire si désactivé.
+        }
         App.setRoot("artist");
     }
 
@@ -97,18 +119,19 @@ public class DashboardController {
     }
 
     @FXML
-    private void switchToManageUsers() throws IOException {
-        App.setRoot("admin_users");
-    }
-
-    @FXML
-    private void switchToStats() throws IOException {
-        App.setRoot("admin_stats");
+    private void switchToAdmin() throws IOException {
+        // Double vérification côté contrôleur (Laksman — défense en profondeur).
+        if (!RoleGuard.canManageUsers(App.getAuthController().getSession())) {
+            return;
+        }
+        App.setRoot("admin");
     }
 
     @FXML
     private void logout() throws IOException {
+        App.stopGlobalPlayer(); // Stopper la musique avant de déconnecter (Laksman).
         App.getAuthController().logout();
+        App.resetVisitorPlayCount();
         App.setRoot("auth");
     }
 }
