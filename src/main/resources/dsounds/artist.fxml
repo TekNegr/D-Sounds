@@ -9,51 +9,49 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="10.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="dsounds.controllers.ArtistController">
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dsounds.controllers.ArtistController">
     <children>
-        <Label text="Ajouter un morceau" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+        <Label text="Artist Upload Page" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
 
-        <TextField fx:id="titleField" promptText="Titre du morceau" />
-        <TextField fx:id="artistField" promptText="Nom de l'artiste" />
-        <TextField fx:id="genreField" promptText="Genre musical" />
+        <TextField fx:id="titleField" promptText="Song title" />
+        <TextField fx:id="artistField" promptText="Artist name" />
+        <TextField fx:id="genreField" promptText="Genre" />
 
         <HBox spacing="8.0">
             <children>
-                <Label text="Album :" />
-                <ComboBox fx:id="albumComboBox" editable="true" prefWidth="240.0"
-                          promptText="Sélectionner ou saisir un album" />
+                <Label text="Album:" />
+                <ComboBox fx:id="albumComboBox" editable="true" prefWidth="240.0" promptText="Select or type an album" />
             </children>
         </HBox>
 
         <HBox spacing="8.0">
             <children>
-                <Label text="Éditeur :" />
+                <Label text="Publisher:" />
                 <Label fx:id="publisherLabel" text="-" />
             </children>
         </HBox>
 
         <TextArea fx:id="descriptionArea" promptText="Description" prefRowCount="3" wrapText="true" />
-        <TextArea fx:id="lyricsArea" promptText="Paroles" prefRowCount="8" wrapText="true" />
+        <TextArea fx:id="lyricsArea" promptText="Lyrics" prefRowCount="8" wrapText="true" />
 
         <HBox spacing="8.0">
             <children>
-                <Button text="Choisir un fichier audio" onAction="#chooseSongFile" />
-                <Label fx:id="selectedFileLabel" text="Aucun fichier sélectionné" />
+                <Button text="Choose Audio" onAction="#chooseSongFile" />
+                <Label fx:id="selectedFileLabel" text="No file selected" />
             </children>
         </HBox>
 
         <HBox spacing="8.0">
             <children>
-                <Button text="Choisir une pochette" onAction="#chooseCoverImage" />
-                <Label fx:id="selectedCoverLabel" text="Aucune pochette sélectionnée" />
+                <Button text="Choose Cover" onAction="#chooseCoverImage" />
+                <Label fx:id="selectedCoverLabel" text="No cover selected" />
             </children>
         </HBox>
 
-        <Button text="Enregistrer le morceau" onAction="#saveSongLocally" />
+        <Button text="Save Song Locally" onAction="#saveSongLocally" />
         <Label fx:id="statusLabel" text="" />
 
-        <Button text="Retour au tableau de bord" onAction="#switchToDashboard" />
+        <Button text="Back to Dashboard" onAction="#switchToDashboard" />
     </children>
 
     <padding>

@@ -206,6 +206,10 @@ public class PlaylistController {
             }
 
             List<Playlist> loadedPlaylists = PlaylistRepository.loadAllPlaylists();
+            // Charger les collaborateurs persistés pour chaque playlist (Laksman).
+            for (Playlist pl : loadedPlaylists) {
+                ownershipChecker.loadFromPlaylist(pl);
+            }
             playlists.setAll(filterVisiblePlaylists(loadedPlaylists));
             statusLabel.setText("Playlists chargées : " + playlists.size());
 
@@ -262,8 +266,8 @@ public class PlaylistController {
             return;
         }
 
-        if (!canEdit(selectedPlaylist)) {
-            statusLabel.setText("Seuls les administrateurs ou le propriétaire peuvent modifier cette playlist.");
+        if (!canManage(selectedPlaylist)) {
+            statusLabel.setText("Seuls le propriétaire ou un administrateur peuvent modifier les paramètres de cette playlist.");
             return;
         }
 
@@ -295,8 +299,8 @@ public class PlaylistController {
             return;
         }
 
-        if (!canEdit(selectedPlaylist)) {
-            statusLabel.setText("Seuls les administrateurs ou le propriétaire peuvent supprimer cette playlist.");
+        if (!canManage(selectedPlaylist)) {
+            statusLabel.setText("Seuls le propriétaire ou un administrateur peuvent supprimer cette playlist.");
             return;
         }
 
@@ -377,6 +381,21 @@ public class PlaylistController {
             return;
         }
         String username = collabUsernameField.getText().trim();
+
+        // Prevent unknown accounts and visitors from being added as collaborators.
+        User targetUser = App.getAuthController().listUsers().stream()
+                .filter(u -> u.getUsername().equalsIgnoreCase(username))
+                .findFirst()
+                .orElse(null);
+        if (targetUser == null) {
+            statusLabel.setText("Utilisateur introuvable : " + username);
+            return;
+        }
+        if (targetUser.getRole() == UserRole.VISITOR) {
+            statusLabel.setText("Un visiteur ne peut pas être collaborateur d'une playlist.");
+            return;
+        }
+
         String roleStr = collabRoleCombo != null ? collabRoleCombo.getValue() : "EDITOR";
         dsounds.security.OwnershipChecker.CollabRole role =
                 "VIEWER".equals(roleStr)
@@ -385,10 +404,13 @@ public class PlaylistController {
         try {
             ownershipChecker.addCollaborator(
                     App.getAuthController().getSession(), selected, username, role);
+            // Persister les collaborateurs dans le fichier playlist (Laksman).
+            ownershipChecker.syncToPlaylist(selected);
+            PlaylistRepository.savePlaylist(selected);
             statusLabel.setText("Collaborateur ajouté : " + username + " [" + roleStr + "]");
             collabUsernameField.clear();
             refreshCollabList(selected);
-        } catch (dsounds.controllers.AuthException e) {
+        } catch (dsounds.controllers.AuthException | IOException e) {
             statusLabel.setText(e.getMessage());
         }
     }
@@ -416,9 +438,12 @@ public class PlaylistController {
         try {
             ownershipChecker.removeCollaborator(
                     App.getAuthController().getSession(), selected, username);
+            // Persister les collaborateurs dans le fichier playlist (Laksman).
+            ownershipChecker.syncToPlaylist(selected);
+            PlaylistRepository.savePlaylist(selected);
             statusLabel.setText("Collaborateur retiré : " + username);
             refreshCollabList(selected);
-        } catch (dsounds.controllers.AuthException e) {
+        } catch (dsounds.controllers.AuthException | IOException e) {
             statusLabel.setText(e.getMessage());
         }
     }
@@ -437,8 +462,7 @@ public class PlaylistController {
 
     @FXML
     private void switchToDashboard() throws IOException {
-        stopPlaybackInternal();
-        App.setRoot("dashboard");
+        App.setRoot("browser");
     }
 
     @FXML
@@ -503,15 +527,8 @@ public class PlaylistController {
     }
 
     private List<Playlist> filterVisiblePlaylists(List<Playlist> allPlaylists) {
-        User currentUser = getCurrentUser();
-        boolean isAdmin = currentUser != null && currentUser.getRole() == UserRole.ADMIN;
-        String username = currentUser == null ? "" : currentUser.getUsername();
-
         return allPlaylists.stream()
-                .filter(playlist -> playlist.isPublic()
-                        || isAdmin
-                        || (playlist.getOwnerUsername() != null
-                            && playlist.getOwnerUsername().equalsIgnoreCase(username)))
+                .filter(playlist -> ownershipChecker.canRead(App.getAuthController().getSession(), playlist))
                 .collect(Collectors.toList());
     }
 
@@ -524,14 +541,25 @@ public class PlaylistController {
         playlistNameField.setText(playlist.getName());
         playlistDescriptionArea.setText(playlist.getDescription());
         publicPlaylistCheckBox.setSelected(playlist.isPublic());
+
+        boolean manage = canManage(playlist);
+        playlistNameField.setDisable(!manage);
+        playlistDescriptionArea.setDisable(!manage);
+        publicPlaylistCheckBox.setDisable(!manage);
+
+        refreshCollabList(playlist);
     }
 
     private void clearPlaylistForm() {
         playlistNameField.clear();
         playlistDescriptionArea.clear();
         publicPlaylistCheckBox.setSelected(true);
+        playlistNameField.setDisable(false);
+        playlistDescriptionArea.setDisable(false);
+        publicPlaylistCheckBox.setDisable(false);
         playlistSongs.clear();
         currentPlaylistAllSongs.clear();
+        refreshCollabList(null);
         applySongSearch();
     }
 
@@ -567,6 +595,11 @@ public class PlaylistController {
                 App.getAuthController().getSession(), playlist);
     }
 
+    private boolean canManage(Playlist playlist) {
+        return ownershipChecker.canDelete(
+                App.getAuthController().getSession(), playlist);
+    }
+
     private void selectPlaylistById(String playlistId) {
         for (Playlist playlist : playlists) {
             if (playlist.getId().equals(playlistId)) {
@@ -599,17 +632,20 @@ public class PlaylistController {
     }
 
     private void updatePermissions(Playlist selectedPlaylist) {
-        User currentUser = getCurrentUser();
-        // Utilise RoleGuard pour centraliser la logique (Laksman).
         boolean canCreate = RoleGuard.canCreatePlaylist(App.getAuthController().getSession());
         boolean editable = selectedPlaylist != null && canEdit(selectedPlaylist);
+        boolean manageable = selectedPlaylist != null && canManage(selectedPlaylist);
         boolean hasSongsToPlay = selectedPlaylist != null && !playlistSongs.isEmpty();
 
         createPlaylistButton.setDisable(!canCreate);
-        updatePlaylistButton.setDisable(!editable);
-        deletePlaylistButton.setDisable(!editable);
+        updatePlaylistButton.setDisable(!manageable);
+        deletePlaylistButton.setDisable(!manageable);
         addSongButton.setDisable(!editable);
         removeSongButton.setDisable(!editable);
+        if (addCollabButton != null) addCollabButton.setDisable(!manageable);
+        if (removeCollabButton != null) removeCollabButton.setDisable(!manageable);
+        if (collabUsernameField != null) collabUsernameField.setDisable(!manageable);
+        if (collabRoleCombo != null) collabRoleCombo.setDisable(!manageable);
         playInOrderButton.setDisable(!hasSongsToPlay);
         playRandomButton.setDisable(!hasSongsToPlay);
         stopPlaybackButton.setDisable(mediaPlayer == null);
@@ -637,6 +673,8 @@ public class PlaylistController {
             stopPlaybackInternal();
             Media media = new Media(path.toUri().toString());
             mediaPlayer = new MediaPlayer(media);
+            App.registerPlayer(mediaPlayer);
+            App.setNowPlaying(currentSong);
             mediaPlayer.setOnEndOfMedia(() -> {
                 advancePlaybackIndex();
                 playCurrentQueueSong();
@@ -667,6 +705,7 @@ public class PlaylistController {
     }
 
     private void stopPlaybackInternal() {
+        App.stopGlobalPlayer();
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.dispose();
@@ -711,10 +750,9 @@ public class PlaylistController {
             return;
         }
 
-        stopPlaybackInternal();
         App.setPendingSongSelectionId(song.getId());
         try {
-            App.setRoot("list");
+            App.setRoot("browser");
         } catch (IOException ex) {
             statusLabel.setText("Could not open songs library: " + ex.getMessage());
         }

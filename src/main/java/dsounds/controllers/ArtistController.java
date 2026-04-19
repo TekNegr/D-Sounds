@@ -179,7 +179,7 @@ public class ArtistController {
 
     @FXML
     private void switchToDashboard() throws IOException {
-        App.setRoot("dashboard");
+        App.setRoot("browser");
     }
 
     @FXML

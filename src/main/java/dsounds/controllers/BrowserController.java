@@ -161,6 +161,7 @@ public class BrowserController {
         setupSearchListeners();
 
         performSearch();
+        selectPendingSongIfAny();
     }
 
     private User getCurrentUser() {
@@ -271,6 +272,23 @@ public class BrowserController {
             genreComboBox.setValue("All Genres");
             typeComboBox.setValue(BrowseType.SONGS);
         });
+    }
+
+    private void selectPendingSongIfAny() {
+        String pendingSongId = App.consumePendingSongSelectionId();
+        if (pendingSongId == null || pendingSongId.isBlank()) {
+            return;
+        }
+        for (BrowseItem item : resultsListView.getItems()) {
+            if (item.type == BrowseType.SONGS && item.data instanceof Song) {
+                Song s = (Song) item.data;
+                if (pendingSongId.equals(s.getId())) {
+                    resultsListView.getSelectionModel().select(item);
+                    resultsListView.scrollTo(item);
+                    break;
+                }
+            }
+        }
     }
 
     private void performSearch() {
@@ -545,13 +563,7 @@ public class BrowserController {
 
         // Play button
         currentPlayQueue.add(song);
-        playButton.setOnAction(e -> {
-            if (mediaPlayer != null) {
-                togglePause(); // Pause/reprise si déjà en lecture (Laksman)
-            } else {
-                playSong(song);
-            }
-        });
+        playButton.setOnAction(e -> playSong(song));
         HBox actionBox = new HBox(10);
         actionBox.setPrefHeight(40);
         actionBox.setAlignment(Pos.CENTER);
@@ -890,6 +902,9 @@ public class BrowserController {
                 return;
             }
 
+            // Toujours stopper le player global précédent avant de lancer un nouveau morceau.
+            App.stopGlobalPlayer();
+
             // Arrêt et libération propre du player précédent — anti-cacophonie (Laksman).
             stopAndDisposePlayer();
             isPaused = false;
@@ -903,6 +918,7 @@ public class BrowserController {
             Media media = new Media(audioFile.toUri().toString());
             mediaPlayer = new MediaPlayer(media);
             App.registerPlayer(mediaPlayer); // Enregistrement global pour stopGlobalPlayer (Laksman)
+            App.setNowPlaying(song);
 
             mediaPlayer.setOnReady(() -> {
                 mediaPlayer.play();
@@ -952,7 +968,7 @@ public class BrowserController {
 
     @FXML
     private void goBack() throws IOException {
-        stopAndDisposePlayer(); // Stopper la musique avant de quitter (Laksman).
         App.setRoot("dashboard");
     }
+
 }

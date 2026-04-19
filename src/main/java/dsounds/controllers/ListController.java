@@ -279,6 +279,7 @@ public class ListController {
             Media media = new Media(songPath.toUri().toString());
             mediaPlayer = new MediaPlayer(media);
             App.registerPlayer(mediaPlayer);
+            App.setNowPlaying(song);
 
             mediaPlayer.setOnError(() ->
                 statusLabel.setText("Erreur de lecture : " + mediaPlayer.getError()));
@@ -421,8 +422,7 @@ public class ListController {
 
     @FXML
     private void switchToDashboard() throws IOException {
-        stopCurrentPlayback();
-        App.setRoot("dashboard");
+        App.setRoot("browser");
     }
 
     private void updateEditPermission(Song selectedSong) {
@@ -592,6 +592,7 @@ public class ListController {
      * Stoppe et libère proprement le MediaPlayer (Laksman).
      */
     private void stopCurrentPlayback() {
+        App.stopGlobalPlayer();
         if (mediaPlayer != null) {
             try {
                 mediaPlayer.stop();

@@ -63,7 +63,7 @@ public class AuthController {
                     + " (" + user.getRole() + "). " + roleInfo);
 
             App.resetVisitorPlayCount(); // Réinitialise le compteur d'écoutes visiteur (Laksman).
-            App.setRoot("dashboard");
+            App.setRoot("browser");
         } catch (AuthException | IOException ex) {
             statusLabel.setText(ex.getMessage());
         }
@@ -93,7 +93,7 @@ public class AuthController {
                     "Connecté en tant que visiteur. "
                   + "Note : les playlists et l'upload sont désactivés en mode visiteur.");
             App.resetVisitorPlayCount(); // Nouvelle session visiteur — compteur remis à zéro (Laksman).
-            App.setRoot("dashboard");
+            App.setRoot("browser");
         } catch (IOException ex) {
             statusLabel.setText(ex.getMessage());
         }
@@ -106,10 +106,14 @@ public class AuthController {
         if (user == null) {
             return "";
         }
-        return switch (user.getRole()) {
-            case ADMIN      -> "Full access: catalogue management and user administration enabled.";
-            case SUBSCRIBER -> "Playlists and unlimited listening enabled.";
-            case VISITOR    -> "Limited access: catalogue only, no playlists.";
-        };
+        switch (user.getRole()) {
+            case ADMIN:
+                return "Full access: catalogue management and user administration enabled.";
+            case SUBSCRIBER:
+                return "Playlists and unlimited listening enabled.";
+            case VISITOR:
+            default:
+                return "Limited access: catalogue only, no playlists.";
+        }
     }
 }

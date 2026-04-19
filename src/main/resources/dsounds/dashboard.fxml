@@ -3,50 +3,33 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
 
-<!--
-    dashboard.fxml — Tableau de bord principal.
-    Modifié par Laksman : boutons contrôlés par rôle.
--->
-<VBox alignment="CENTER" spacing="14.0"
-      xmlns="http://javafx.com/javafx/21"
+<VBox alignment="CENTER" spacing="20.0"
+      xmlns="http://javafx.com/javafx/8.0.171"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="dsounds.controllers.DashboardController">
    <children>
-      <Label fx:id="welcomeLabel" text="Tableau de bord"
+      <Label fx:id="welcomeLabel" text="Dashboard"
              style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+      <Label fx:id="roleLabel" text=""
+             style="-fx-font-size: 14px; -fx-text-fill: grey;" />
 
-      <Label fx:id="roleInfoLabel" text="" wrapText="true"
-             style="-fx-text-fill: #555; -fx-font-style: italic;" maxWidth="420" />
+      <Button text="Open Music Browser" onAction="#switchToBrowser" />
 
-      <Separator />
+      <Button fx:id="btnArtist" text="Open Artist Upload Page" onAction="#switchToArtist" />
+      <Button fx:id="btnLibrary" text="Open Music Browser" onAction="#switchToList" />
+      <Button fx:id="btnPlaylists" text="Open Playlists" onAction="#switchToPlaylists" />
 
-      <Button text="Parcourir la musique" onAction="#switchToBrowser" minWidth="240" />
-      <Button text="Bibliothèque de morceaux" onAction="#switchToList" minWidth="240" />
+      <Button fx:id="btnManageUsers" text="Manage Users" onAction="#switchToManageUsers" />
+      <Button fx:id="btnStats" text="View Statistics" onAction="#switchToStats" />
 
-      <!-- Réservé aux abonnés et admins (Laksman) -->
-      <Button fx:id="playlistButton" text="Mes playlists"
-              onAction="#switchToPlaylists" minWidth="240" />
+      <Label fx:id="visitorInfoLabel" text=""
+             style="-fx-font-size: 12px; -fx-text-fill: orange;" />
 
-      <Separator />
-
-      <!-- Réservé aux admins (Laksman) -->
-      <Button fx:id="artistUploadButton" text="Ajouter un morceau (artiste)"
-              onAction="#switchToArtist" minWidth="240" />
-
-      <!-- Panel admin (Laksman) -->
-      <Button fx:id="adminPanelButton" text="⚙ Administration — Gérer les utilisateurs"
-              onAction="#switchToAdmin" minWidth="240"
-              style="-fx-background-color: #2c3e50; -fx-text-fill: white; -fx-font-weight: bold;" />
-
-      <Separator />
-
-      <Button text="Se déconnecter" onAction="#logout" minWidth="240"
-              style="-fx-text-fill: #c0392b;" />
+      <Button text="Logout" onAction="#logout" />
    </children>
    <padding>
-      <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
    </padding>
 </VBox>
