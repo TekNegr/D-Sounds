@@ -1,0 +1,102 @@
+Pas un taille crayon@DESKTOP-VTVOSJV MINGW64 ~/Desktop/EVERYTHING/DevStar/JAVA_ing3/dsounds
+$  cd c:\\Users\\Pas\ un\ taille\ crayon\\Desktop\\EVERYTHING\\DevStar\\JAVA_ing3\\dsounds ; /usr/bin/env C:\\Program\ Files\\Java\\jdk-25.0.2\\bin\\java.exe -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:65075 @C:\\Users\\PASUNT~1\\AppData\\Local\\Temp\\cp_2d624weroma2s8i0iy975p4gq.argfile -m dsounds/dsounds.App 
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by com.sun.glass.utils.NativeLibLoader
+ in module javafx.graphics (file:/C:/Users/Pas%20un%20taille%20crayon/.m2/repository/org/openjfx/javafx-graphics/13/javafx-graphics-13-win.jar)
+WARNING: Use --enable-native-access=javafx.graphics to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::allocateMemory has been called by com.sun.marlin.OffHeapArray (file:/C:/Users/Pas%20un%20taille%20crayon/.m2/repository/org/openjfx/javafx-graphics/13/javafx-graphics-13-win.jar)
+WARNING: Please consider reporting this to the maintainers of class com.sun.marlin.OffHeapArray
+WARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release
+
+Pas un taille crayon@DESKTOP-VTVOSJV MINGW64 ~/Desktop/EVERYTHING/DevStar/JAVA_ing3/dsounds
+$  cd c:\\Users\\Pas\ un\ taille\ crayon\\Desktop\\EVERYTHING\\DevStar\\JAVA_ing3\\dsounds ; /usr/bin/env C:\\Program\ Files\\Java\\jdk-25.0.2\\bin\\java.exe -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:55186 @C:\\Users\\PASUNT~1\\AppData\\Local\\Temp\\cp_2d624weroma2s8i0iy975p4gq.argfile -m dsounds/dsounds.App 
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by com.sun.glass.utils.NativeLibLoader
+ in module javafx.graphics (file:/C:/Users/Pas%20un%20taille%20crayon/.m2/repository/org/openjfx/javafx-graphics/13/javafx-graphics-13-win.jar)
+WARNING: Use --enable-native-access=javafx.graphics to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::allocateMemory has been called by com.sun.marlin.OffHeapArray (file:/C:/Users/Pas%20un%20taille%20crayon/.m2/repository/org/openjfx/javafx-graphics/13/javafx-graphics-13-win.jar)
+WARNING: Please consider reporting this to the maintainers of class com.sun.marlin.OffHeapArray
+WARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release
+avr. 16, 2026 6:09:19 PM javafx.fxml.FXMLLoader$ValueElement processValue
+WARNING: Loading FXML document with JavaFX API of version 21 by JavaFX runtime of version 13
+Exception in thread "JavaFX Application Thread" java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
+        at javafx.fxml/javafx.fxml.FXMLLoader$MethodHandler.invoke(FXMLLoader.java:1787)
+        at javafx.fxml/javafx.fxml.FXMLLoader$ControllerMethodEventHandler.handle(FXMLLoader.java:1670)
+        at javafx.base/com.sun.javafx.event.CompositeEventHandler.dispatchBubblingEvent(CompositeEventHandler.java:86)
+        at javafx.base/com.sun.javafx.event.EventHandlerManager.dispatchBubblingEvent(EventHandlerManager.java:238)
+        at javafx.base/com.sun.javafx.event.EventHandlerManager.dispatchBubblingEvent(EventHandlerManager.java:191)
+        at javafx.base/com.sun.javafx.event.CompositeEventDispatcher.dispatchBubblingEvent(CompositeEventDispatcher.java:59)
+        at javafx.base/com.sun.javafx.event.BasicEventDispatcher.dispatchEvent(BasicEventDispatcher.java:58)
+        at javafx.base/com.sun.javafx.event.EventDispatchChainImpl.dispatchEvent(EventDispatchChainImpl.java:114)
+        at javafx.base/com.sun.javafx.event.BasicEventDispatcher.dispatchEvent(BasicEventDispatcher.java:56)
+        at javafx.base/com.sun.javafx.event.EventDispatchChainImpl.dispatchEvent(EventDispatchChainImpl.java:114)
+        at javafx.base/com.sun.javafx.event.BasicEventDispatcher.dispatchEvent(BasicEventDispatcher.java:56)
+        at javafx.base/com.sun.javafx.event.EventDispatchChainImpl.dispatchEvent(EventDispatchChainImpl.java:114)
+        at javafx.base/com.sun.javafx.event.EventUtil.fireEventImpl(EventUtil.java:74)
+
+        at javafx.base/com.sun.javafx.event.EventUtil.fireEvent(EventUtil.java:49)
+        at javafx.base/javafx.event.Event.fireEvent(Event.java:198)
+        at javafx.graphics/javafx.scene.Node.fireEvent(Node.java:8890)
+        at javafx.controls/javafx.scene.control.Button.fire(Button.java:203)
+        at javafx.controls/com.sun.javafx.scene.control.behavior.ButtonBehavior.mouseReleased(ButtonBehavior.java:206)
+        at javafx.controls/com.sun.javafx.scene.control.inputmap.InputMap.handle(InputMap.java:274)
+        at javafx.base/com.sun.javafx.event.CompositeEventHandler$NormalEventHandlerRecord.handleBubblingEvent(CompositeEventHandler.java:218)
+        at javafx.base/com.sun.javafx.event.CompositeEventHandler.dispatchBubblingEvent(CompositeEventHandler.java:80)
+        at javafx.base/com.sun.javafx.event.EventHandlerManager.dispatchBubblingEvent(EventHandlerManager.java:238)
+        at javafx.base/com.sun.javafx.event.EventHandlerManager.dispatchBubblingEvent(EventHandlerManager.java:191)
+        at javafx.base/com.sun.javafx.event.CompositeEventDispatcher.dispatchBubblingEvent(CompositeEventDispatcher.java:59)
+        at javafx.base/com.sun.javafx.event.BasicEventDispatcher.dispatchEvent(BasicEventDispatcher.java:58)
+        at javafx.base/com.sun.javafx.event.EventDispatchChainImpl.dispatchEvent(EventDispatchChainImpl.java:114)
+        at javafx.base/com.sun.javafx.event.BasicEventDispatcher.dispatchEvent(BasicEventDispatcher.java:56)
+        at javafx.base/com.sun.javafx.event.EventDispatchChainImpl.dispatchEvent(EventDispatchChainImpl.java:114)
+        at javafx.base/com.sun.javafx.event.BasicEventDispatcher.dispatchEvent(BasicEventDispatcher.java:56)
+        at javafx.base/com.sun.javafx.event.EventDispatchChainImpl.dispatchEvent(EventDispatchChainImpl.java:114)
+        at javafx.base/com.sun.javafx.event.EventUtil.fireEventImpl(EventUtil.java:74)
+
+        at javafx.base/com.sun.javafx.event.EventUtil.fireEvent(EventUtil.java:54)
+        at javafx.base/javafx.event.Event.fireEvent(Event.java:198)
+        at javafx.graphics/javafx.scene.Scene$MouseHandler.process(Scene.java:3862)
+        at javafx.graphics/javafx.scene.Scene.processMouseEvent(Scene.java:1849)
+        at javafx.graphics/javafx.scene.Scene$ScenePeerListener.mouseEvent(Scene.java:2590)
+        at javafx.graphics/com.sun.javafx.tk.quantum.GlassViewEventHandler$MouseEventNotification.run(GlassViewEventHandler.java:409)
+        at javafx.graphics/com.sun.javafx.tk.quantum.GlassViewEventHandler$MouseEventNotification.run(GlassViewEventHandler.java:299)
+        at java.base/java.security.AccessController.doPrivileged(AccessController.java:138)
+        at javafx.graphics/com.sun.javafx.tk.quantum.GlassViewEventHandler.lambda$handleMouseEvent$2(GlassViewEventHandler.java:447)
+        at javafx.graphics/com.sun.javafx.tk.quantum.QuantumToolkit.runWithoutRenderLock(QuantumToolkit.java:412)
+        at javafx.graphics/com.sun.javafx.tk.quantum.GlassViewEventHandler.handleMouseEvent(GlassViewEventHandler.java:446)
+        at javafx.graphics/com.sun.glass.ui.View.handleMouseEvent(View.java:556)
+        at javafx.graphics/com.sun.glass.ui.View.notifyMouse(View.java:942)
+        at javafx.graphics/com.sun.glass.ui.win.WinApplication._runLoop(Native Method)
+
+        at javafx.graphics/com.sun.glass.ui.win.WinApplication.lambda$runLoop$3(WinApplication.java:174)
+        at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: java.lang.reflect.InvocationTargetException
+        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:119)
+        at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+        at com.sun.javafx.reflect.Trampoline.invoke(MethodUtil.java:76)
+        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+        at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+        at javafx.base/com.sun.javafx.reflect.MethodUtil.invoke(MethodUtil.java:273)
+        at javafx.fxml/com.sun.javafx.fxml.MethodHelper.invoke(MethodHelper.java:83)
+        at javafx.fxml/javafx.fxml.FXMLLoader$MethodHandler.invoke(FXMLLoader.java:1784)
+        ... 46 more
+Caused by: javafx.fxml.LoadException: Region is not a valid type.
+/C:/Users/Pas%20un%20taille%20crayon/Desktop/EVERYTHING/DevStar/JAVA_ing3/dsounds/target/classes/dsounds/browser.fxml:22
+
+        at javafx.fxml/javafx.fxml.FXMLLoader.constructLoadException(FXMLLoader.java:2621)
+        at javafx.fxml/javafx.fxml.FXMLLoader.createElement(FXMLLoader.java:2789)
+        at javafx.fxml/javafx.fxml.FXMLLoader.processStartElement(FXMLLoader.java:2719)
+        at javafx.fxml/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2552)
+        at javafx.fxml/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2466)
+        at javafx.fxml/javafx.fxml.FXMLLoader.load(FXMLLoader.java:2435)
+        at dsounds/dsounds.App.loadFXML(App.java:64)
+        at dsounds/dsounds.App.setRoot(App.java:45)
+        at dsounds/dsounds.controllers.DashboardController.switchToBrowser(DashboardController.java:13)
+        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+        ... 53 more

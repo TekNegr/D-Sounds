@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="dsounds.controllers.ArtistController">
+    <children>
+        <Label text="Ajouter un morceau" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+
+        <TextField fx:id="titleField" promptText="Titre du morceau" />
+        <TextField fx:id="artistField" promptText="Nom de l'artiste" />
+        <TextField fx:id="genreField" promptText="Genre musical" />
+
+        <HBox spacing="8.0">
+            <children>
+                <Label text="Album :" />
+                <ComboBox fx:id="albumComboBox" editable="true" prefWidth="240.0"
+                          promptText="Sélectionner ou saisir un album" />
+            </children>
+        </HBox>
+
+        <HBox spacing="8.0">
+            <children>
+                <Label text="Éditeur :" />
+                <Label fx:id="publisherLabel" text="-" />
+            </children>
+        </HBox>
+
+        <TextArea fx:id="descriptionArea" promptText="Description" prefRowCount="3" wrapText="true" />
+        <TextArea fx:id="lyricsArea" promptText="Paroles" prefRowCount="8" wrapText="true" />
+
+        <HBox spacing="8.0">
+            <children>
+                <Button text="Choisir un fichier audio" onAction="#chooseSongFile" />
+                <Label fx:id="selectedFileLabel" text="Aucun fichier sélectionné" />
+            </children>
+        </HBox>
+
+        <HBox spacing="8.0">
+            <children>
+                <Button text="Choisir une pochette" onAction="#chooseCoverImage" />
+                <Label fx:id="selectedCoverLabel" text="Aucune pochette sélectionnée" />
+            </children>
+        </HBox>
+
+        <Button text="Enregistrer le morceau" onAction="#saveSongLocally" />
+        <Label fx:id="statusLabel" text="" />
+
+        <Button text="Retour au tableau de bord" onAction="#switchToDashboard" />
+    </children>
+
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+</VBox>

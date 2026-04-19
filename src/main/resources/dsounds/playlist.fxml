@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="dsounds.controllers.PlaylistController">
+    <top>
+        <VBox spacing="8.0">
+            <children>
+                <Label text="Playlists" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+                <Label text="Créez des playlists publiques ou privées et gérez vos morceaux." />
+                <HBox spacing="8.0">
+                    <children>
+                        <TextField fx:id="searchField"
+                                   promptText="Rechercher par titre, artiste, genre, éditeur ou album"
+                                   HBox.hgrow="ALWAYS" />
+                        <Button fx:id="clearSearchButton" text="Effacer" onAction="#clearSearch" />
+                    </children>
+                </HBox>
+                <HBox spacing="8.0">
+                    <children>
+                        <Button text="Actualiser" onAction="#refreshAll" />
+                        <Button text="Retour au tableau de bord" onAction="#switchToDashboard" />
+                    </children>
+                </HBox>
+            </children>
+            <padding>
+                <Insets top="16.0" right="20.0" bottom="12.0" left="20.0" />
+            </padding>
+        </VBox>
+    </top>
+
+    <center>
+        <HBox spacing="12.0">
+            <children>
+                <!-- Colonne gauche : liste des playlists -->
+                <VBox spacing="8.0" prefWidth="280.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="Mes playlists visibles"
+                               style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <ListView fx:id="playlistListView" prefHeight="420.0" VBox.vgrow="ALWAYS" />
+                    </children>
+                    <padding>
+                        <Insets top="0.0" right="0.0" bottom="20.0" left="20.0" />
+                    </padding>
+                </VBox>
+
+                <!-- Colonne centre : détails et morceaux -->
+                <VBox spacing="8.0" prefWidth="320.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="Détails de la playlist"
+                               style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <TextField fx:id="playlistNameField" promptText="Nom de la playlist" />
+                        <CheckBox fx:id="publicPlaylistCheckBox" text="Playlist publique" selected="true" />
+                        <TextArea fx:id="playlistDescriptionArea" promptText="Description"
+                                  prefRowCount="4" wrapText="true" />
+
+                        <HBox spacing="8.0">
+                            <children>
+                                <Button fx:id="createPlaylistButton" text="Créer"
+                                        onAction="#createPlaylist" />
+                                <Button fx:id="updatePlaylistButton" text="Modifier"
+                                        onAction="#updatePlaylist" />
+                                <Button fx:id="deletePlaylistButton" text="Supprimer"
+                                        onAction="#deletePlaylist" />
+                            </children>
+                        </HBox>
+
+                        <HBox spacing="8.0">
+                            <children>
+                                <Button fx:id="playInOrderButton" text="▶ Lecture ordonnée"
+                                        onAction="#playPlaylistInOrder" />
+                                <Button fx:id="playRandomButton" text="🔀 Aléatoire"
+                                        onAction="#playPlaylistRandom" />
+                                <Button fx:id="repeatModeButton" text="Répétition : Off"
+                                        onAction="#toggleRepeatMode" />
+                                <Button fx:id="stopPlaybackButton" text="⏹ Stop"
+                                        onAction="#stopPlayback" disable="true" />
+                            </children>
+                        </HBox>
+
+                        <Label text="Morceaux de la playlist"
+                               style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <ListView fx:id="playlistSongsListView" prefHeight="170.0" VBox.vgrow="ALWAYS" />
+                        <Button fx:id="removeSongButton" text="Retirer le morceau sélectionné"
+                                onAction="#removeSelectedSongFromPlaylist" />
+                    </children>
+                    <padding>
+                        <Insets top="0.0" right="0.0" bottom="20.0" left="0.0" />
+                    </padding>
+                </VBox>
+
+                <!-- Colonne droite : morceaux disponibles + collaborateurs -->
+                <VBox spacing="8.0" prefWidth="320.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="Morceaux disponibles"
+                               style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <ListView fx:id="availableSongsListView" prefHeight="200.0" VBox.vgrow="ALWAYS" />
+                        <Button fx:id="addSongButton" text="Ajouter à la playlist"
+                                onAction="#addSelectedSongToPlaylist" />
+                        <Label fx:id="statusLabel" text="" wrapText="true" />
+
+                        <!-- Section collaborateurs (Laksman) -->
+                        <Label text="Collaborateurs"
+                               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8 0 0 0;" />
+                        <Label text="Partagez cette playlist avec d'autres abonnés."
+                               style="-fx-text-fill: #888; -fx-font-style: italic;" wrapText="true" />
+                        <javafx.scene.control.TextField fx:id="collabUsernameField"
+                               promptText="Nom d'utilisateur du collaborateur" />
+                        <javafx.scene.control.ComboBox fx:id="collabRoleCombo" prefWidth="160" />
+                        <javafx.scene.control.ListView fx:id="collabListView" prefHeight="100" />
+                        <HBox spacing="8.0">
+                            <children>
+                                <Button fx:id="addCollabButton" text="+ Ajouter"
+                                        onAction="#addCollaborator" />
+                                <Button fx:id="removeCollabButton" text="- Retirer"
+                                        onAction="#removeCollaborator" />
+                            </children>
+                        </HBox>
+                    </children>
+                    <padding>
+                        <Insets top="0.0" right="20.0" bottom="20.0" left="0.0" />
+                    </padding>
+                </VBox>
+            </children>
+        </HBox>
+    </center>
+</BorderPane>
