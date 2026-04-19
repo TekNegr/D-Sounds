@@ -77,7 +77,7 @@ public class DashboardController {
         }
 
             // Defense in depth: enforce button access from centralized role checks.
-            btnArtist.setDisable(!RoleGuard.canManageCatalog(session));
+            btnArtist.setDisable(!RoleGuard.canUploadMusic(session));
             btnPlaylists.setDisable(!RoleGuard.canCreatePlaylist(session));
             btnManageUsers.setDisable(!RoleGuard.canManageUsers(session));
             btnStats.setDisable(!RoleGuard.canManageUsers(session));
@@ -90,7 +90,7 @@ public class DashboardController {
 
     @FXML
     private void switchToArtist() throws IOException {
-        if (!RoleGuard.canManageCatalog(App.getAuthController().getSession())) {
+        if (!RoleGuard.canUploadMusic(App.getAuthController().getSession())) {
             return;
         }
         App.setRoot("artist");

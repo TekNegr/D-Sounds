@@ -62,11 +62,11 @@ public class ArtistController {
 
     @FXML
     private void initialize() {
-        // Vérification de rôle : seuls les admins peuvent accéder à cette page (Laksman).
-        if (!RoleGuard.canManageCatalog(App.getAuthController().getSession())) {
+        // Upload autorisé pour abonnés et admins ; interdit aux visiteurs.
+        if (!RoleGuard.canUploadMusic(App.getAuthController().getSession())) {
             try {
-                statusLabel.setText("Accès refusé : réservé aux administrateurs.");
-                App.setRoot("dashboard");
+                statusLabel.setText("Accès refusé : connectez-vous avec un compte abonné.");
+                App.setRoot("browser");
             } catch (java.io.IOException ignored) {}
             return;
         }
@@ -101,6 +101,11 @@ public class ArtistController {
 
     @FXML
     private void saveSongLocally() {
+        if (!RoleGuard.canUploadMusic(App.getAuthController().getSession())) {
+            statusLabel.setText("Access denied: only subscribers and admins can publish songs.");
+            return;
+        }
+
         String title = safeTrim(titleField.getText());
         String artist = safeTrim(artistField.getText());
 

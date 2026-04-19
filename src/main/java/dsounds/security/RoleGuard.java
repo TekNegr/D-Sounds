@@ -196,8 +196,19 @@ public final class RoleGuard {
     }
 
     /**
+     * Indique si l'utilisateur courant peut publier des morceaux.
+     * Les visiteurs ne peuvent pas publier ; abonnés et admins le peuvent.
+     *
+     * @param session la session courante
+     * @return {@code true} si la publication de morceaux est autorisée
+     */
+    public static boolean canUploadMusic(AuthSession session) {
+        return !isVisitor(session);
+    }
+
+    /**
      * Indique si l'utilisateur courant peut administrer le catalogue
-     * (ajouter/supprimer des morceaux, des albums, etc.).
+     * (actions d'administration globale).
      *
      * @param session la session courante
      * @return {@code true} si l'administration du catalogue est autorisée

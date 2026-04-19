@@ -10,6 +10,7 @@ import dsounds.models.UserRole;
 import dsounds.security.RoleGuard;
 import dsounds.repositories.AlbumRepository;
 import dsounds.repositories.PlaylistRepository;
+import dsounds.repositories.ReviewRepository;
 import dsounds.repositories.SongRepository;
 
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,11 +28,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -569,21 +574,20 @@ public class BrowserController {
         actionBox.setAlignment(Pos.CENTER);
         actionBox.getChildren().add(playButton);
 
-        // Edit button for publisher
-        if (song.getPublisherUsername().equals(currentUser.getUsername()) ||
-            currentUser.getRole() == UserRole.ADMIN) {
-            editButton.setDisable(false);
+        boolean canManageSong = canManageSong(song);
+        editButton.setDisable(!canManageSong);
+        deleteButton.setDisable(!canManageSong);
+        if (canManageSong) {
             editButton.setOnAction(e -> editSong(song));
-            actionBox.getChildren().add(editButton);
-            deleteButton.setDisable(true);
-        } else {
-            editButton.setDisable(true);
-            deleteButton.setDisable(true);
+            deleteButton.setOnAction(e -> deleteSong(song));
+            actionBox.getChildren().addAll(editButton, deleteButton);
         }
 
         VBox.setVgrow(detailInfoArea, Priority.SOMETIMES);
         detailBox.getChildren().add(actionBox);
-        detailPanel.getChildren().add(detailBox);
+        ScrollPane scrollPane = new ScrollPane(detailBox);
+        scrollPane.setFitToWidth(true);
+        detailPanel.getChildren().add(scrollPane);
     }
 
     private void showAlbumDetail(Album album) throws IOException {
@@ -651,7 +655,9 @@ public class BrowserController {
         VBox.setVgrow(detailInfoArea, Priority.SOMETIMES);
         VBox.setVgrow(detailSongsListView, Priority.ALWAYS);
         detailBox.getChildren().add(actionBox);
-        detailPanel.getChildren().add(detailBox);
+        ScrollPane scrollPane = new ScrollPane(detailBox);
+        scrollPane.setFitToWidth(true);
+        detailPanel.getChildren().add(scrollPane);
     }
 
     private void showArtistDetail(String artist) throws IOException {
@@ -718,7 +724,9 @@ public class BrowserController {
         VBox.setVgrow(detailInfoArea, Priority.SOMETIMES);
         VBox.setVgrow(detailSongsListView, Priority.ALWAYS);
         detailBox.getChildren().add(actionBox);
-        detailPanel.getChildren().add(detailBox);
+        ScrollPane scrollPane = new ScrollPane(detailBox);
+        scrollPane.setFitToWidth(true);
+        detailPanel.getChildren().add(scrollPane);
     }
 
     private void showPlaylistDetail(Playlist playlist) throws IOException {
@@ -799,7 +807,9 @@ public class BrowserController {
         VBox.setVgrow(detailInfoArea, Priority.SOMETIMES);
         VBox.setVgrow(detailSongsListView, Priority.ALWAYS);
         detailBox.getChildren().add(actionBox);
-        detailPanel.getChildren().add(detailBox);
+        ScrollPane scrollPane = new ScrollPane(detailBox);
+        scrollPane.setFitToWidth(true);
+        detailPanel.getChildren().add(scrollPane);
     }
 
     private void addReviewPanel(VBox parent, Song song) throws IOException {
@@ -851,7 +861,45 @@ public class BrowserController {
         reviewButtonBox.getChildren().addAll(likeButton, dislikeButton);
         reviewBox.getChildren().add(reviewButtonBox);
 
-        reviewCommentArea.setWrapText(true);
+        // Display all user comments
+        try {
+            List<Review> allReviews = ReviewRepository.loadReviewsForSong(song.getId());
+            if (!allReviews.isEmpty()) {
+                Label allCommentsLabel = new Label("All comments (" + allReviews.size() + ")");
+                allCommentsLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 0 0;");
+                reviewBox.getChildren().add(allCommentsLabel);
+
+                ListView<Review> commentsListView = new ListView<>();
+                commentsListView.setItems(FXCollections.observableArrayList(allReviews));
+                commentsListView.setPrefHeight(120);
+                commentsListView.setCellFactory(list -> new ListCell<Review>() {
+                    @Override
+                    protected void updateItem(Review review, boolean empty) {
+                        super.updateItem(review, empty);
+                        if (empty || review == null) {
+                            setText(null);
+                        } else {
+                            String emoji = review.isLiked() ? "👍" : "👎";
+                            String text = String.format("%s %s: %s",
+                                emoji,
+                                review.getUserId(),
+                                review.getComment() != null ? review.getComment() : "(no comment)");
+                            setText(text);
+                            setWrapText(true);
+                        }
+                    }
+                });
+                reviewBox.getChildren().add(commentsListView);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        reviewBox.getChildren().add(new Label(" "));
+        Label yourCommentLabel = new Label("Your comment:");
+        yourCommentLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 0 0;");
+        reviewBox.getChildren().add(yourCommentLabel);
+
         reviewCommentArea.setPrefRowCount(3);
         reviewCommentArea.setPromptText("Add a comment (max 140 chars)...");
         if (currentReview != null) {
@@ -946,10 +994,41 @@ public class BrowserController {
     private void editSong(Song song) {
         try {
             App.setPendingSongSelectionId(song.getId());
-            App.setRoot("artist");
+            App.setRoot("list");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void deleteSong(Song song) {
+        if (!canManageSong(song)) {
+            playStatusLabel.setText("Access denied: only the publisher or an administrator can delete this song.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete song");
+        confirm.setHeaderText("Delete \"" + song.getTitle() + "\"?");
+        confirm.setContentText("This will remove the music file and metadata.");
+
+        Optional<ButtonType> decision = confirm.showAndWait();
+        if (decision.isEmpty() || decision.get() != ButtonType.OK) {
+            return;
+        }
+
+        try {
+            SongRepository.deleteSong(song);
+            AlbumRepository.removeSongFromAlbum(song.getAlbum(), song.getId());
+            performSearch();
+            clearDetailPanel();
+            playStatusLabel.setText("Song deleted.");
+        } catch (IOException ex) {
+            playStatusLabel.setText("Delete failed: " + ex.getMessage());
+        }
+    }
+
+    private boolean canManageSong(Song song) {
+        return song != null && RoleGuard.canModify(App.getAuthController().getSession(), song.getPublisherUsername());
     }
 
     private void editPlaylist(Playlist playlist) {

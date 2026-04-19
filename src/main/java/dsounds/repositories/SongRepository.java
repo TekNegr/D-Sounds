@@ -134,6 +134,26 @@ public final class SongRepository {
     }
 
     /**
+     * Delete a song metadata and related local files.
+     */
+    public static void deleteSong(Song song) throws IOException {
+        if (song == null) {
+            return;
+        }
+
+        if (song.getStoredFileName() != null && !song.getStoredFileName().isBlank()) {
+            Files.deleteIfExists(SONGS_DIR.resolve(song.getStoredFileName()));
+        }
+
+        if (song.getCoverImageFileName() != null && !song.getCoverImageFileName().isBlank()) {
+            Files.deleteIfExists(COVERS_DIR.resolve(song.getCoverImageFileName()));
+        }
+
+        Path metadataPath = METADATA_DIR.resolve(song.getId() + ".properties");
+        Files.deleteIfExists(metadataPath);
+    }
+
+    /**
      * Get the local songs directory
      */
     public static Path getSongsDirectory() throws IOException {

@@ -44,14 +44,14 @@ public class GlobalBarController {
         connectedUserLabel.setText("Connected: " + currentUser.getUsername() + " (" + currentUser.getRole() + ")");
 
         boolean canPlaylists = RoleGuard.canCreatePlaylist(App.getAuthController().getSession());
-        boolean canCatalog = RoleGuard.canManageCatalog(App.getAuthController().getSession());
+        boolean canUpload = RoleGuard.canUploadMusic(App.getAuthController().getSession());
         boolean canUsers = RoleGuard.canManageUsers(App.getAuthController().getSession());
 
         playlistsButton.setVisible(canPlaylists);
         playlistsButton.setManaged(canPlaylists);
 
-        uploadButton.setVisible(canCatalog);
-        uploadButton.setManaged(canCatalog);
+        uploadButton.setVisible(canUpload);
+        uploadButton.setManaged(canUpload);
 
         usersButton.setVisible(canUsers);
         usersButton.setManaged(canUsers);
@@ -94,7 +94,7 @@ public class GlobalBarController {
 
     @FXML
     private void goUpload() throws IOException {
-        if (!RoleGuard.canManageCatalog(App.getAuthController().getSession())) {
+        if (!RoleGuard.canUploadMusic(App.getAuthController().getSession())) {
             return;
         }
         App.setRoot("artist");
