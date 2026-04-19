@@ -1,0 +1,234 @@
+<changelist name="Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1" date="1776590857113" recycled="true" deleted="true">
+  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/shelved.patch" />
+  <option name="DESCRIPTION" value="Uncommitted changes before Checkout at 19/04/2026 11:27 [Changes]" />
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/BrowserController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/BrowserController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/BrowserController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/PlaylistController$1.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/PlaylistController$1.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/PlaylistController$1.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/repositories/UserRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/repositories/UserRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/UserRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/ListController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/ListController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/ListController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/GoogleAuthController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/GoogleAuthController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/GoogleAuthController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/SecondaryController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/SecondaryController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/SecondaryController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/LocalSong.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/LocalSong.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/LocalSong.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/repositories/SongRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/repositories/SongRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/SongRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/DashboardController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/DashboardController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/DashboardController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/LocalSongRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/LocalSongRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/LocalSongRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/AuthSession.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/AuthSession.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/AuthSession.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/PlaylistController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/PlaylistController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/PlaylistController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/BrowserController$BrowseType.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/BrowserController$BrowseType.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/BrowserController$BrowseType.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/ReviewController$ReviewStats.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/ReviewController$ReviewStats.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/ReviewController$ReviewStats.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/LocalAuthController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/LocalAuthController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/LocalAuthController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/Playlist.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/Playlist.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/Playlist.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/App.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/App.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/App.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/AuthException.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/AuthException.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/AuthException.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/PlaylistController$RepeatMode.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/PlaylistController$RepeatMode.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/PlaylistController$RepeatMode.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/ArtistController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/ArtistController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/ArtistController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/AuthController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/AuthController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/AuthController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/BrowserController$BrowseItem.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/BrowserController$BrowseItem.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/BrowserController$BrowseItem.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/UserRole.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/UserRole.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/UserRole.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/module-info.class" />
+    <option name="AFTER_PATH" value="target/classes/module-info.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/module-info.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/User.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/User.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/User.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/JamController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/JamController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/JamController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/repositories/PlaylistRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/repositories/PlaylistRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/PlaylistRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/ListController$1$1.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/ListController$1$1.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/ListController$1$1.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/SongController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/SongController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/SongController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/ListController$1.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/ListController$1.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/ListController$1.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/PlaylistController$2.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/PlaylistController$2.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/PlaylistController$2.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/Song$StorageLocation.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/Song$StorageLocation.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/Song$StorageLocation.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/SongSearchUtils.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/SongSearchUtils.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/SongSearchUtils.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/ReviewController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/ReviewController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/ReviewController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/Playlist$Visibility.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/Playlist$Visibility.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/Playlist$Visibility.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/BrowserController$2.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/BrowserController$2.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/BrowserController$2.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/PrimaryController.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/PrimaryController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/PrimaryController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/Review.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/Review.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/Review.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/Song.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/Song.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/Song.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/BrowserController$1.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/BrowserController$1.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/BrowserController$1.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/BrowserController$1$1.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/BrowserController$1$1.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/BrowserController$1$1.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/repositories/ReviewRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/repositories/ReviewRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/ReviewRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/repositories/AlbumRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/repositories/AlbumRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/AlbumRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/controllers/BrowserController$2$1.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/controllers/BrowserController$2$1.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/BrowserController$2$1.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/JamRoom.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/JamRoom.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/JamRoom.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/dsounds/models/Album.class" />
+    <option name="AFTER_PATH" value="target/classes/dsounds/models/Album.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_19_04_2026_11_27_[Changes]1/Album.class" />
+  </binary>
+</changelist>

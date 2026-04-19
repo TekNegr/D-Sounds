@@ -1,0 +1,476 @@
+Index: src/main/java/dsounds/controllers/DashboardController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dsounds.controllers;\r\n\r\nimport dsounds.App;\r\n\r\nimport java.io.IOException;\r\n\r\nimport javafx.fxml.FXML;\r\n\r\npublic class DashboardController {\r\n\r\n    @FXML\r\n    private void switchToBrowser() throws IOException {\r\n        App.setRoot(\"browser\");\r\n    }\r\n\r\n    @FXML\r\n    private void switchToArtist() throws IOException {\r\n        App.setRoot(\"artist\");\r\n    }\r\n\r\n    @FXML\r\n    private void switchToList() throws IOException {\r\n        App.setRoot(\"list\");\r\n    }\r\n\r\n    @FXML\r\n    private void switchToPlaylists() throws IOException {\r\n        App.setRoot(\"playlist\");\r\n    }\r\n\r\n    @FXML\r\n    private void logout() throws IOException {\r\n        App.getAuthController().logout();\r\n        App.setRoot(\"auth\");\r\n    }\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/dsounds/controllers/DashboardController.java b/src/main/java/dsounds/controllers/DashboardController.java
+--- a/src/main/java/dsounds/controllers/DashboardController.java	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/src/main/java/dsounds/controllers/DashboardController.java	(date 1776428451254)
+@@ -1,13 +1,84 @@
+ package dsounds.controllers;
+ 
+ import dsounds.App;
++import dsounds.models.AuthSession;
++import dsounds.models.User;
++import dsounds.models.UserRole;
+ 
+ import java.io.IOException;
+ 
+ import javafx.fxml.FXML;
++import javafx.scene.control.Button;
++import javafx.scene.control.Label;
+ 
+ public class DashboardController {
+ 
++    @FXML private Label welcomeLabel;
++    @FXML private Label roleLabel;
++    @FXML private Label visitorInfoLabel;
++
++    @FXML private Button btnArtist;
++    @FXML private Button btnLibrary;
++    @FXML private Button btnPlaylists;
++    @FXML private Button btnManageUsers;
++    @FXML private Button btnStats;
++
++    @FXML
++    private void initialize() {
++        AuthSession session = App.getAuthController().getSession();
++        User user = session.getCurrentUser();
++        UserRole role = user.getRole();
++
++        // Message de bienvenue
++        welcomeLabel.setText("Welcome, " + user.getDisplayName());
++        roleLabel.setText("Connected as: " + role.name());
++
++        // Masquer tout par défaut
++        btnArtist.setVisible(false);
++        btnArtist.setManaged(false);
++        btnLibrary.setVisible(false);
++        btnLibrary.setManaged(false);
++        btnPlaylists.setVisible(false);
++        btnPlaylists.setManaged(false);
++        btnManageUsers.setVisible(false);
++        btnManageUsers.setManaged(false);
++        btnStats.setVisible(false);
++        btnStats.setManaged(false);
++        visitorInfoLabel.setVisible(false);
++        visitorInfoLabel.setManaged(false);
++
++        // Afficher selon le rôle
++        switch (role) {
++            case ADMIN:
++                btnArtist.setVisible(true);
++                btnArtist.setManaged(true);
++                btnLibrary.setVisible(true);
++                btnLibrary.setManaged(true);
++                btnPlaylists.setVisible(true);
++                btnPlaylists.setManaged(true);
++                btnManageUsers.setVisible(true);
++                btnManageUsers.setManaged(true);
++                btnStats.setVisible(true);
++                btnStats.setManaged(true);
++                break;
++
++            case SUBSCRIBER:
++                btnArtist.setVisible(true);
++                btnArtist.setManaged(true);
++                btnLibrary.setVisible(true);
++                btnLibrary.setManaged(true);
++                btnPlaylists.setVisible(true);
++                btnPlaylists.setManaged(true);
++                break;
++
++            case VISITOR:
++                visitorInfoLabel.setVisible(true);
++                visitorInfoLabel.setManaged(true);
++                visitorInfoLabel.setText("Visitor mode: limited to 5 listens, no playlists.");
++                break;
++        }
++    }
++
+     @FXML
+     private void switchToBrowser() throws IOException {
+         App.setRoot("browser");
+@@ -28,9 +99,19 @@
+         App.setRoot("playlist");
+     }
+ 
++    @FXML
++    private void switchToManageUsers() throws IOException {
++        App.setRoot("admin_users");
++    }
++
++    @FXML
++    private void switchToStats() throws IOException {
++        App.setRoot("admin_stats");
++    }
++
+     @FXML
+     private void logout() throws IOException {
+         App.getAuthController().logout();
+         App.setRoot("auth");
+     }
+-}
++}
+\ No newline at end of file
+Index: src/main/java/dsounds/controllers/ListController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dsounds.controllers;\r\n\r\nimport dsounds.App;\r\nimport dsounds.controllers.ReviewController.ReviewStats;\r\nimport dsounds.repositories.AlbumRepository;\r\nimport dsounds.models.Song;\r\nimport dsounds.models.Review;\r\nimport dsounds.models.User;\r\nimport dsounds.models.UserRole;\r\nimport dsounds.repositories.SongRepository;\r\n\r\nimport java.io.IOException;\r\nimport java.nio.file.Files;\r\nimport java.nio.file.Path;\r\nimport java.nio.file.StandardCopyOption;\r\nimport java.util.List;\r\nimport java.util.Optional;\r\n\r\nimport javafx.collections.FXCollections;\r\nimport javafx.collections.ObservableList;\r\nimport javafx.fxml.FXML;\r\nimport javafx.scene.control.Button;\r\nimport javafx.scene.control.ButtonType;\r\nimport javafx.scene.control.Dialog;\r\nimport javafx.scene.control.DialogPane;\r\nimport javafx.scene.control.Label;\r\nimport javafx.scene.control.ListCell;\r\nimport javafx.scene.control.ListView;\r\nimport javafx.scene.control.TextArea;\r\nimport javafx.scene.control.TextField;\r\nimport javafx.scene.control.Alert;\r\nimport javafx.scene.image.Image;\r\nimport javafx.scene.image.ImageView;\r\nimport javafx.scene.layout.GridPane;\r\nimport javafx.scene.media.Media;\r\nimport javafx.scene.media.MediaPlayer;\r\nimport javafx.stage.FileChooser;\r\nimport javafx.stage.Stage;\r\nimport javafx.util.Callback;\r\n\r\npublic class ListController {\r\n\r\n    private static final int MAX_COMMENT_LENGTH = 140;\r\n\r\n    @FXML\r\n    private ListView<Song> songListView;\r\n\r\n    @FXML\r\n    private TextArea songDetailsArea;\r\n\r\n    @FXML\r\n    private Label songCountLabel;\r\n\r\n    @FXML\r\n    private Label statusLabel;\r\n\r\n    @FXML\r\n    private Button editSongButton;\r\n\r\n    @FXML\r\n    private ImageView coverImageView;\r\n\r\n    @FXML\r\n    private TextField searchField;\r\n\r\n    @FXML\r\n    private Button clearSearchButton;\r\n\r\n    @FXML\r\n    private TextArea reviewCommentArea;\r\n\r\n    @FXML\r\n    private Label reviewStatsLabel;\r\n\r\n    @FXML\r\n    private Button likeButton;\r\n\r\n    @FXML\r\n    private Button dislikeButton;\r\n\r\n    private final ObservableList<Song> songs = FXCollections.observableArrayList();\r\n    private final ObservableList<Song> allSongs = FXCollections.observableArrayList();\r\n    private MediaPlayer mediaPlayer;\r\n    private final ReviewController reviewController = new ReviewController();\r\n\r\n    @FXML\r\n    private void initialize() {\r\n        songListView.setItems(songs);\r\n        songListView.setCellFactory(new Callback<ListView<Song>, ListCell<Song>>() {\r\n            @Override\r\n            public ListCell<Song> call(ListView<Song> listView) {\r\n                return new ListCell<Song>() {\r\n                    @Override\r\n                    protected void updateItem(Song song, boolean empty) {\r\n                        super.updateItem(song, empty);\r\n                        if (empty || song == null) {\r\n                            setText(null);\r\n                        } else {\r\n                            setText(song.getSummary());\r\n                        }\r\n                    }\r\n                };\r\n            }\r\n        });\r\n\r\n        songListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {\r\n            if (newValue == null) {\r\n                songDetailsArea.clear();\r\n                coverImageView.setImage(null);\r\n                reviewCommentArea.clear();\r\n                reviewStatsLabel.setText(\"No song selected.\");\r\n                setReviewControlsDisabled(true);\r\n            } else {\r\n                refreshSelectedSongDetails(newValue);\r\n                updateCoverPreview(newValue);\r\n                refreshReviewPanel(newValue);\r\n            }\r\n\r\n            updateEditPermission(newValue);\r\n        });\r\n\r\n        searchField.textProperty().addListener((observable, oldValue, newValue) -> applySongFilter());\r\n\r\n        refreshSongs();\r\n    }\r\n\r\n    @FXML\r\n    private void clearSearch() {\r\n        searchField.clear();\r\n        applySongFilter();\r\n    }\r\n\r\n    @FXML\r\n    private void likeSelectedSong() {\r\n        submitReview(true);\r\n    }\r\n\r\n    @FXML\r\n    private void dislikeSelectedSong() {\r\n        submitReview(false);\r\n    }\r\n\r\n    @FXML\r\n    private void editSelectedSong() {\r\n        Song selectedSong = songListView.getSelectionModel().getSelectedItem();\r\n        if (selectedSong == null) {\r\n            statusLabel.setText(\"Select a song first.\");\r\n            return;\r\n        }\r\n\r\n        String previousAlbum = selectedSong.getAlbum();\r\n\r\n        if (!canEdit(selectedSong)) {\r\n            statusLabel.setText(\"You can only edit your own songs unless you are admin.\");\r\n            return;\r\n        }\r\n\r\n        Dialog<ButtonType> dialog = new Dialog<>();\r\n        dialog.setTitle(\"Edit Song\");\r\n        DialogPane pane = dialog.getDialogPane();\r\n        pane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);\r\n\r\n        TextField titleField = new TextField(selectedSong.getTitle());\r\n        TextField artistField = new TextField(selectedSong.getArtist());\r\n        TextField genreField = new TextField(selectedSong.getGenre());\r\n        TextField albumField = new TextField(selectedSong.getAlbum());\r\n\r\n        GridPane grid = new GridPane();\r\n        grid.setHgap(8);\r\n        grid.setVgap(8);\r\n        grid.addRow(0, new Label(\"Title\"), titleField);\r\n        grid.addRow(1, new Label(\"Artist\"), artistField);\r\n        grid.addRow(2, new Label(\"Genre\"), genreField);\r\n        grid.addRow(3, new Label(\"Album\"), albumField);\r\n        pane.setContent(grid);\r\n\r\n        Optional<ButtonType> result = dialog.showAndWait();\r\n        if (result.isEmpty() || result.get() != ButtonType.OK) {\r\n            return;\r\n        }\r\n\r\n        selectedSong.setTitle(safeTrim(titleField.getText()));\r\n        selectedSong.setArtist(safeTrim(artistField.getText()));\r\n        selectedSong.setGenre(safeTrim(genreField.getText()));\r\n        selectedSong.setAlbum(safeTrim(albumField.getText()));\r\n\r\n        try {\r\n            maybeUpdateCover(selectedSong);\r\n            AlbumRepository.moveSong(previousAlbum, selectedSong.getAlbum(), selectedSong);\r\n            SongRepository.saveSongMetadata(selectedSong);\r\n            songListView.refresh();\r\n            songDetailsArea.setText(selectedSong.getDetails());\r\n            updateCoverPreview(selectedSong);\r\n            applySongFilter();\r\n            statusLabel.setText(\"Song updated.\");\r\n        } catch (IOException ex) {\r\n            statusLabel.setText(\"Could not save changes: \" + ex.getMessage());\r\n        }\r\n    }\r\n\r\n    @FXML\r\n    private void playSelectedSong() {\r\n        Song selectedSong = songListView.getSelectionModel().getSelectedItem();\r\n        if (selectedSong == null) {\r\n            statusLabel.setText(\"Select a song first.\");\r\n            return;\r\n        }\r\n\r\n        Path songPath = resolveSongPath(selectedSong);\r\n        if (songPath == null || !Files.exists(songPath)) {\r\n            statusLabel.setText(\"Audio file not found for selected song.\");\r\n            return;\r\n        }\r\n\r\n        try {\r\n            stopCurrentPlayback();\r\n            Media media = new Media(songPath.toUri().toString());\r\n            mediaPlayer = new MediaPlayer(media);\r\n            mediaPlayer.setOnError(() -> statusLabel.setText(\"Playback error: \" + mediaPlayer.getError()));\r\n            mediaPlayer.setOnEndOfMedia(() -> statusLabel.setText(\"Playback finished: \" + selectedSong.getTitle()));\r\n            mediaPlayer.play();\r\n            statusLabel.setText(\"Playing: \" + selectedSong.getSummary());\r\n        } catch (RuntimeException ex) {\r\n            statusLabel.setText(\"Could not play song: \" + ex.getMessage());\r\n        }\r\n    }\r\n\r\n    @FXML\r\n    private void stopPlayback() {\r\n        stopCurrentPlayback();\r\n        statusLabel.setText(\"Playback stopped.\");\r\n    }\r\n\r\n    @FXML\r\n    private void refreshSongs() {\r\n        try {\r\n            List<Song> loadedSongs = SongRepository.loadAllLocalSongs();\r\n            allSongs.setAll(loadedSongs);\r\n            applySongFilter();\r\n            statusLabel.setText(loadedSongs.isEmpty() ? \"No local songs found yet.\" : \"Library loaded from local storage.\");\r\n\r\n            if (loadedSongs.isEmpty()) {\r\n                songDetailsArea.setText(\"No songs have been saved yet.\");\r\n                reviewStatsLabel.setText(\"No song selected.\");\r\n            } else if (songListView.getSelectionModel().getSelectedItem() == null) {\r\n                String pendingSongId = App.consumePendingSongSelectionId();\r\n                if (pendingSongId != null) {\r\n                    selectSongById(pendingSongId);\r\n                }\r\n\r\n                if (songListView.getSelectionModel().getSelectedItem() == null) {\r\n                    songListView.getSelectionModel().selectFirst();\r\n                }\r\n            }\r\n\r\n            Song selectedSong = songListView.getSelectionModel().getSelectedItem();\r\n            if (selectedSong != null) {\r\n                refreshSelectedSongDetails(selectedSong);\r\n                refreshReviewPanel(selectedSong);\r\n            }\r\n        } catch (IOException ex) {\r\n            songCountLabel.setText(\"Songs found: 0\");\r\n            statusLabel.setText(\"Could not load local songs: \" + ex.getMessage());\r\n            songDetailsArea.setText(\"Failed to read local storage metadata.\");\r\n        }\r\n    }\r\n\r\n    @FXML\r\n    private void switchToDashboard() throws IOException {\r\n        stopCurrentPlayback();\r\n        App.setRoot(\"dashboard\");\r\n    }\r\n\r\n    private void updateEditPermission(Song selectedSong) {\r\n        editSongButton.setDisable(selectedSong == null || !canEdit(selectedSong));\r\n    }\r\n\r\n    private void refreshSelectedSongDetails(Song song) {\r\n        StringBuilder builder = new StringBuilder(song.getDetails());\r\n        try {\r\n            ReviewStats stats = reviewController.getStatsForSong(song.getId());\r\n            builder.append(\"\\n\\nReviews:\\n\");\r\n            builder.append(\"Likes: \").append(stats.getLikes()).append(\" | Dislikes: \").append(stats.getDislikes());\r\n        } catch (IOException ex) {\r\n            builder.append(\"\\n\\nReviews unavailable.\");\r\n        }\r\n\r\n        songDetailsArea.setText(builder.toString());\r\n    }\r\n\r\n    private void refreshReviewPanel(Song song) {\r\n        User currentUser = App.getAuthController().getSession().getCurrentUser();\r\n        if (currentUser == null) {\r\n            setReviewControlsDisabled(true);\r\n            reviewStatsLabel.setText(\"Log in to like, dislike, or comment.\");\r\n            return;\r\n        }\r\n\r\n        setReviewControlsDisabled(false);\r\n\r\n        try {\r\n            Review review = reviewController.findCurrentUserReview(song.getId(), currentUser.getId());\r\n            if (review != null) {\r\n                reviewCommentArea.setText(review.getComment() == null ? \"\" : review.getComment());\r\n                reviewStatsLabel.setText(\"Your review: \" + (review.isLiked() ? \"Like\" : \"Dislike\"));\r\n            } else {\r\n                reviewCommentArea.clear();\r\n                reviewStatsLabel.setText(\"Your review: none\");\r\n            }\r\n\r\n            ReviewStats stats = reviewController.getStatsForSong(song.getId());\r\n            reviewStatsLabel.setText(reviewStatsLabel.getText() + \" | Likes: \" + stats.getLikes() + \" | Dislikes: \" + stats.getDislikes());\r\n        } catch (IOException ex) {\r\n            reviewStatsLabel.setText(\"Review data unavailable: \" + ex.getMessage());\r\n        }\r\n    }\r\n\r\n    private void submitReview(boolean liked) {\r\n        Song selectedSong = songListView.getSelectionModel().getSelectedItem();\r\n        if (selectedSong == null) {\r\n            statusLabel.setText(\"Select a song first.\");\r\n            return;\r\n        }\r\n\r\n        User currentUser = App.getAuthController().getSession().getCurrentUser();\r\n        if (currentUser == null || currentUser.getRole() == UserRole.VISITOR) {\r\n            statusLabel.setText(\"Log in to review songs.\");\r\n            return;\r\n        }\r\n\r\n        String comment = safeTrim(reviewCommentArea.getText());\r\n        if (comment.length() > MAX_COMMENT_LENGTH) {\r\n            reviewCommentArea.setText(comment.substring(0, MAX_COMMENT_LENGTH));\r\n            comment = reviewCommentArea.getText();\r\n        }\r\n\r\n        try {\r\n            reviewController.upsertReview(selectedSong.getId(), currentUser.getId(), liked, comment);\r\n            refreshSelectedSongDetails(selectedSong);\r\n            refreshReviewPanel(selectedSong);\r\n            statusLabel.setText(\"Review saved.\");\r\n        } catch (IOException ex) {\r\n            statusLabel.setText(\"Could not save review: \" + ex.getMessage());\r\n        }\r\n    }\r\n\r\n    private void selectSongById(String songId) {\r\n        for (Song song : songs) {\r\n            if (song.getId().equals(songId)) {\r\n                songListView.getSelectionModel().select(song);\r\n                return;\r\n            }\r\n        }\r\n    }\r\n\r\n    private void applySongFilter() {\r\n        String query = searchField.getText();\r\n        Song selectedSong = songListView.getSelectionModel().getSelectedItem();\r\n        String selectedId = selectedSong != null ? selectedSong.getId() : null;\r\n\r\n        List<Song> filteredSongs = allSongs.stream()\r\n                .filter(song -> SongSearchUtils.matches(song, query))\r\n                .collect(java.util.stream.Collectors.toList());\r\n\r\n        songs.setAll(filteredSongs);\r\n        songCountLabel.setText(\"Songs found: \" + filteredSongs.size() + \" / \" + allSongs.size());\r\n\r\n        if (selectedId != null) {\r\n            selectSongById(selectedId);\r\n        }\r\n\r\n        if (songListView.getSelectionModel().getSelectedItem() == null && !songs.isEmpty()) {\r\n            songListView.getSelectionModel().selectFirst();\r\n        }\r\n\r\n        clearSearchButton.setDisable(query == null || query.isBlank());\r\n    }\r\n\r\n    private boolean canEdit(Song song) {\r\n        User currentUser = App.getAuthController().getSession().getCurrentUser();\r\n        if (currentUser == null) {\r\n            return false;\r\n        }\r\n\r\n        if (currentUser.getRole() == UserRole.ADMIN) {\r\n            return true;\r\n        }\r\n\r\n        String publisher = song.getPublisherUsername();\r\n        return publisher != null && publisher.equalsIgnoreCase(currentUser.getUsername());\r\n    }\r\n\r\n    private void updateCoverPreview(Song song) {\r\n        Path coverPath = resolveCoverPath(song);\r\n        if (coverPath == null || !Files.exists(coverPath)) {\r\n            coverImageView.setImage(null);\r\n            return;\r\n        }\r\n\r\n        try {\r\n            coverImageView.setImage(new Image(coverPath.toUri().toString(), true));\r\n        } catch (IllegalArgumentException ex) {\r\n            coverImageView.setImage(null);\r\n        }\r\n    }\r\n\r\n    private Path resolveCoverPath(Song song) {\r\n        if (song.getCoverImagePath() != null && !song.getCoverImagePath().isBlank()) {\r\n            return Path.of(song.getCoverImagePath());\r\n        }\r\n\r\n        if (song.getCoverImageFileName() != null && !song.getCoverImageFileName().isBlank()) {\r\n            try {\r\n                return SongRepository.getCoversDirectory().resolve(song.getCoverImageFileName());\r\n            } catch (IOException ex) {\r\n                return null;\r\n            }\r\n        }\r\n\r\n        return null;\r\n    }\r\n\r\n    private Path resolveSongPath(Song song) {\r\n        if (song.getLocalStoragePath() != null && !song.getLocalStoragePath().isBlank()) {\r\n            return Path.of(song.getLocalStoragePath());\r\n        }\r\n\r\n        if (song.getStoredFileName() != null && !song.getStoredFileName().isBlank()) {\r\n            try {\r\n                return SongRepository.getSongsDirectory().resolve(song.getStoredFileName());\r\n            } catch (IOException ex) {\r\n                return null;\r\n            }\r\n        }\r\n\r\n        return null;\r\n    }\r\n\r\n    private void stopCurrentPlayback() {\r\n        if (mediaPlayer != null) {\r\n            mediaPlayer.stop();\r\n            mediaPlayer.dispose();\r\n            mediaPlayer = null;\r\n        }\r\n    }\r\n\r\n    private void setReviewControlsDisabled(boolean disabled) {\r\n        reviewCommentArea.setDisable(disabled);\r\n        likeButton.setDisable(disabled);\r\n        dislikeButton.setDisable(disabled);\r\n    }\r\n\r\n    private static String safeTrim(String value) {\r\n        return value == null ? \"\" : value.trim();\r\n    }\r\n\r\n    private void maybeUpdateCover(Song song) throws IOException {\r\n        Alert question = new Alert(Alert.AlertType.CONFIRMATION);\r\n        question.setTitle(\"Update Cover\");\r\n        question.setHeaderText(\"Do you want to replace the cover image?\");\r\n        question.setContentText(\"Choose No to keep the current cover.\");\r\n\r\n        ButtonType yes = new ButtonType(\"Yes\");\r\n        ButtonType no = new ButtonType(\"No\");\r\n        question.getButtonTypes().setAll(yes, no, ButtonType.CANCEL);\r\n\r\n        Optional<ButtonType> response = question.showAndWait();\r\n        if (response.isEmpty() || response.get() == ButtonType.CANCEL || response.get() == no) {\r\n            return;\r\n        }\r\n\r\n        FileChooser chooser = new FileChooser();\r\n        chooser.setTitle(\"Choose cover image\");\r\n        chooser.getExtensionFilters().add(\r\n            new FileChooser.ExtensionFilter(\"Supported image\", \"*.png\", \"*.jpg\", \"*.jpeg\", \"*.webp\")\r\n        );\r\n        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(\"All files\", \"*.*\"));\r\n\r\n        Stage currentStage = (Stage) songListView.getScene().getWindow();\r\n        java.io.File chosen = chooser.showOpenDialog(currentStage);\r\n        if (chosen == null) {\r\n            return;\r\n        }\r\n\r\n        Path chosenPath = chosen.toPath();\r\n        Path coversDir = SongRepository.getCoversDirectory();\r\n        String coverFileName = song.getId() + \"-\" + sanitizeFileName(chosenPath.getFileName().toString());\r\n        Path targetCoverPath = coversDir.resolve(coverFileName);\r\n        Files.copy(chosenPath, targetCoverPath, StandardCopyOption.REPLACE_EXISTING);\r\n        song.setCoverImageFileName(coverFileName);\r\n        song.setCoverImagePath(targetCoverPath.toString());\r\n    }\r\n\r\n    private static String sanitizeFileName(String fileName) {\r\n        return fileName.replaceAll(\"[^a-zA-Z0-9._-]\", \"_\");\r\n    }\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/dsounds/controllers/ListController.java b/src/main/java/dsounds/controllers/ListController.java
+--- a/src/main/java/dsounds/controllers/ListController.java	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/src/main/java/dsounds/controllers/ListController.java	(date 1776590524740)
+@@ -394,13 +394,19 @@
+         Path coverPath = resolveCoverPath(song);
+         if (coverPath == null || !Files.exists(coverPath)) {
+             coverImageView.setImage(null);
++            coverImageView.setVisible(false);
++            coverImageView.setManaged(false);
+             return;
+         }
+ 
+         try {
+             coverImageView.setImage(new Image(coverPath.toUri().toString(), true));
++            coverImageView.setVisible(true);
++            coverImageView.setManaged(true);
+         } catch (IllegalArgumentException ex) {
+             coverImageView.setImage(null);
++            coverImageView.setVisible(false);
++            coverImageView.setManaged(false);
+         }
+     }
+ 
+Index: target/classes/dsounds/list.fxml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<?import javafx.geometry.Insets?>\r\n<?import javafx.scene.control.Button?>\r\n<?import javafx.scene.control.Label?>\r\n<?import javafx.scene.control.ListView?>\r\n<?import javafx.scene.control.TextArea?>\r\n<?import javafx.scene.control.TextField?>\r\n<?import javafx.scene.image.ImageView?>\r\n<?import javafx.scene.layout.BorderPane?>\r\n<?import javafx.scene.layout.HBox?>\r\n<?import javafx.scene.layout.Priority?>\r\n<?import javafx.scene.layout.VBox?>\r\n\r\n<BorderPane xmlns=\"http://javafx.com/javafx/8.0.171\" xmlns:fx=\"http://javafx.com/fxml/1\" fx:controller=\"dsounds.controllers.ListController\">\r\n    <top>\r\n        <VBox spacing=\"8.0\">\r\n            <children>\r\n                <Label text=\"Local Song Library\" style=\"-fx-font-size: 20px; -fx-font-weight: bold;\" />\r\n                <Label text=\"All songs saved inside local_storage are listed here.\" />\r\n                <HBox spacing=\"8.0\">\r\n                    <children>\r\n                        <TextField fx:id=\"searchField\" promptText=\"Search by title, artist, genre, publisher, or album\" HBox.hgrow=\"ALWAYS\" />\r\n                        <Button fx:id=\"clearSearchButton\" text=\"Clear\" onAction=\"#clearSearch\" />\r\n                    </children>\r\n                </HBox>\r\n                <HBox spacing=\"8.0\">\r\n                    <children>\r\n                        <Button text=\"Refresh\" onAction=\"#refreshSongs\" />\r\n                        <Button text=\"Play Selected\" onAction=\"#playSelectedSong\" />\r\n                        <Button text=\"Stop\" onAction=\"#stopPlayback\" />\r\n                        <Button fx:id=\"editSongButton\" text=\"Edit Selected\" onAction=\"#editSelectedSong\" disable=\"true\" />\r\n                        <Button text=\"Back to Dashboard\" onAction=\"#switchToDashboard\" />\r\n                    </children>\r\n                </HBox>\r\n            </children>\r\n            <padding>\r\n                <Insets bottom=\"12.0\" left=\"20.0\" right=\"20.0\" top=\"20.0\" />\r\n            </padding>\r\n        </VBox>\r\n    </top>\r\n\r\n    <center>\r\n        <HBox spacing=\"12.0\">\r\n            <children>\r\n                <VBox spacing=\"8.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <Label fx:id=\"songCountLabel\" text=\"Songs found: 0\" />\r\n                        <ListView fx:id=\"songListView\" prefWidth=\"320.0\" prefHeight=\"420.0\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets bottom=\"20.0\" left=\"20.0\" right=\"0.0\" top=\"0.0\" />\r\n                    </padding>\r\n                </VBox>\r\n\r\n                <VBox spacing=\"8.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <ImageView fx:id=\"coverImageView\" fitWidth=\"220.0\" fitHeight=\"220.0\" preserveRatio=\"true\" />\r\n                        <Label text=\"Song details\" style=\"-fx-font-size: 16px; -fx-font-weight: bold;\" />\r\n                        <TextArea fx:id=\"songDetailsArea\" editable=\"false\" wrapText=\"true\" prefRowCount=\"20\" VBox.vgrow=\"ALWAYS\" />\r\n                        <Label fx:id=\"statusLabel\" text=\"\" />\r\n\r\n                        <Label text=\"Your review\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <TextArea fx:id=\"reviewCommentArea\" promptText=\"Write a short comment (max 140 characters)\" prefRowCount=\"3\" wrapText=\"true\" />\r\n                        <HBox spacing=\"8.0\">\r\n                            <children>\r\n                                <Button fx:id=\"likeButton\" text=\"Like\" onAction=\"#likeSelectedSong\" />\r\n                                <Button fx:id=\"dislikeButton\" text=\"Dislike\" onAction=\"#dislikeSelectedSong\" />\r\n                            </children>\r\n                        </HBox>\r\n                        <Label fx:id=\"reviewStatsLabel\" text=\"No song selected.\" wrapText=\"true\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets bottom=\"20.0\" left=\"0.0\" right=\"20.0\" top=\"0.0\" />\r\n                    </padding>\r\n                </VBox>\r\n            </children>\r\n        </HBox>\r\n    </center>\r\n</BorderPane>\r\n
+===================================================================
+diff --git a/target/classes/dsounds/list.fxml b/target/classes/dsounds/list.fxml
+--- a/target/classes/dsounds/list.fxml	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/target/classes/dsounds/list.fxml	(date 1776589912991)
+@@ -41,40 +41,50 @@
+     </top>
+ 
+     <center>
+-        <HBox spacing="12.0">
++        <HBox spacing="16.0" HBox.hgrow="ALWAYS">
++            <padding>
++                <Insets bottom="20.0" left="20.0" right="20.0" />
++            </padding>
+             <children>
+-                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
++                <!-- Left: song list -->
++                <VBox spacing="8.0" prefWidth="350" HBox.hgrow="SOMETIMES">
+                     <children>
+                         <Label fx:id="songCountLabel" text="Songs found: 0" />
+-                        <ListView fx:id="songListView" prefWidth="320.0" prefHeight="420.0" />
++                        <ListView fx:id="songListView" VBox.vgrow="ALWAYS" />
+                     </children>
+-                    <padding>
+-                        <Insets bottom="20.0" left="20.0" right="0.0" top="0.0" />
+-                    </padding>
+                 </VBox>
+ 
+-                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
++                <!-- Right: details + review -->
++                <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                     <children>
+-                        <ImageView fx:id="coverImageView" fitWidth="220.0" fitHeight="220.0" preserveRatio="true" />
+-                        <Label text="Song details" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+-                        <TextArea fx:id="songDetailsArea" editable="false" wrapText="true" prefRowCount="20" VBox.vgrow="ALWAYS" />
+-                        <Label fx:id="statusLabel" text="" />
++                        <HBox spacing="16.0" alignment="TOP_LEFT">
++                            <children>
++                                <ImageView fx:id="coverImageView" fitWidth="180.0" fitHeight="180.0" preserveRatio="true" />
++                                <VBox spacing="6.0" HBox.hgrow="ALWAYS">
++                                    <children>
++                                        <Label text="Song details" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
++                                        <Label fx:id="statusLabel" text="" wrapText="true" />
++                                    </children>
++                                </VBox>
++                            </children>
++                        </HBox>
++
++                        <TextArea fx:id="songDetailsArea" editable="false" wrapText="true"
++                                  VBox.vgrow="ALWAYS" maxHeight="Infinity" />
+ 
+                         <Label text="Your review" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+-                        <TextArea fx:id="reviewCommentArea" promptText="Write a short comment (max 140 characters)" prefRowCount="3" wrapText="true" />
+-                        <HBox spacing="8.0">
++                        <TextArea fx:id="reviewCommentArea" promptText="Write a short comment (max 140 characters)"
++                                  prefRowCount="2" wrapText="true" maxHeight="80" />
++                        <HBox spacing="8.0" alignment="CENTER_LEFT">
+                             <children>
+                                 <Button fx:id="likeButton" text="Like" onAction="#likeSelectedSong" />
+                                 <Button fx:id="dislikeButton" text="Dislike" onAction="#dislikeSelectedSong" />
++                                <Label fx:id="reviewStatsLabel" text="No song selected." wrapText="true" />
+                             </children>
+                         </HBox>
+-                        <Label fx:id="reviewStatsLabel" text="No song selected." wrapText="true" />
+                     </children>
+-                    <padding>
+-                        <Insets bottom="20.0" left="0.0" right="20.0" top="0.0" />
+-                    </padding>
+                 </VBox>
+             </children>
+         </HBox>
+     </center>
+-</BorderPane>
++</BorderPane>
+\ No newline at end of file
+Index: target/classes/dsounds/dashboard.fxml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<?import javafx.geometry.Insets?>\r\n<?import javafx.scene.control.Button?>\r\n<?import javafx.scene.control.Label?>\r\n<?import javafx.scene.layout.VBox?>\r\n\r\n<VBox alignment=\"CENTER\" spacing=\"20.0\" xmlns=\"http://javafx.com/javafx/8.0.171\" xmlns:fx=\"http://javafx.com/fxml/1\" fx:controller=\"dsounds.controllers.DashboardController\">\r\n   <children>\r\n      <Label text=\"Dashboard\" style=\"-fx-font-size: 22px; -fx-font-weight: bold;\" />\r\n      <Button text=\"Open Music Browser\" onAction=\"#switchToBrowser\" />\r\n      <Button text=\"Open Artist Upload Page\" onAction=\"#switchToArtist\" />\r\n      <Button text=\"Open Local Song Library\" onAction=\"#switchToList\" />\r\n      <Button text=\"Open Playlists\" onAction=\"#switchToPlaylists\" />\r\n      <Button text=\"Logout\" onAction=\"#logout\" />\r\n   </children>\r\n   <padding>\r\n      <Insets bottom=\"20.0\" left=\"20.0\" right=\"20.0\" top=\"20.0\" />\r\n   </padding>\r\n</VBox>\r\n
+===================================================================
+diff --git a/target/classes/dsounds/dashboard.fxml b/target/classes/dsounds/dashboard.fxml
+--- a/target/classes/dsounds/dashboard.fxml	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/target/classes/dsounds/dashboard.fxml	(date 1776428208252)
+@@ -5,16 +5,35 @@
+ <?import javafx.scene.control.Label?>
+ <?import javafx.scene.layout.VBox?>
+ 
+-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dsounds.controllers.DashboardController">
++<VBox alignment="CENTER" spacing="20.0"
++      xmlns="http://javafx.com/javafx/8.0.171"
++      xmlns:fx="http://javafx.com/fxml/1"
++      fx:controller="dsounds.controllers.DashboardController">
+    <children>
+-      <Label text="Dashboard" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
++      <Label fx:id="welcomeLabel" text="Dashboard"
++             style="-fx-font-size: 22px; -fx-font-weight: bold;" />
++      <Label fx:id="roleLabel" text=""
++             style="-fx-font-size: 14px; -fx-text-fill: grey;" />
++
++      <!-- Tous les utilisateurs -->
+       <Button text="Open Music Browser" onAction="#switchToBrowser" />
+-      <Button text="Open Artist Upload Page" onAction="#switchToArtist" />
+-      <Button text="Open Local Song Library" onAction="#switchToList" />
+-      <Button text="Open Playlists" onAction="#switchToPlaylists" />
++
++      <!-- Abonné seulement -->
++      <Button fx:id="btnArtist" text="Open Artist Upload Page" onAction="#switchToArtist" />
++      <Button fx:id="btnLibrary" text="Open Local Song Library" onAction="#switchToList" />
++      <Button fx:id="btnPlaylists" text="Open Playlists" onAction="#switchToPlaylists" />
++
++      <!-- Admin seulement -->
++      <Button fx:id="btnManageUsers" text="Manage Users" onAction="#switchToManageUsers" />
++      <Button fx:id="btnStats" text="View Statistics" onAction="#switchToStats" />
++
++      <!-- Visiteur info -->
++      <Label fx:id="visitorInfoLabel" text=""
++             style="-fx-font-size: 12px; -fx-text-fill: orange;" />
++
+       <Button text="Logout" onAction="#logout" />
+    </children>
+    <padding>
+       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+-</VBox>
++</VBox>
+\ No newline at end of file
+Index: src/main/java/dsounds/App.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dsounds;\r\n\r\nimport dsounds.controllers.LocalAuthController;\r\n\r\nimport javafx.application.Application;\r\nimport javafx.fxml.FXMLLoader;\r\nimport javafx.scene.Parent;\r\nimport javafx.scene.Scene;\r\nimport javafx.stage.Stage;\r\n\r\nimport java.io.IOException;\r\n\r\n/**\r\n * JavaFX App\r\n */\r\npublic class App extends Application {\r\n\r\n    private static Scene scene;\r\n    private static LocalAuthController authController;\r\n    private static String pendingSongSelectionId;\r\n\r\n    @Override\r\n    public void start(Stage stage) throws IOException {\r\n        authController = LocalAuthController.createDefault();\r\n        try {\r\n            authController.loadUsers();\r\n        } catch (ClassNotFoundException ex) {\r\n            throw new IOException(\"Could not load user storage.\", ex);\r\n        }\r\n\r\n        scene = new Scene(loadFXML(\"auth\"), 760, 560);\r\n        stage.setScene(scene);\r\n        stage.setTitle(\"dSounds\");\r\n        stage.show();\r\n    }\r\n\r\n    @Override\r\n    public void stop() throws IOException {\r\n        if (authController != null) {\r\n            authController.saveUsers();\r\n        }\r\n    }\r\n\r\n    public static void setRoot(String fxml) throws IOException {\r\n        scene.setRoot(loadFXML(fxml));\r\n    }\r\n\r\n    public static LocalAuthController getAuthController() {\r\n        return authController;\r\n    }\r\n\r\n    public static void setPendingSongSelectionId(String songId) {\r\n        pendingSongSelectionId = songId;\r\n    }\r\n\r\n    public static String consumePendingSongSelectionId() {\r\n        String songId = pendingSongSelectionId;\r\n        pendingSongSelectionId = null;\r\n        return songId;\r\n    }\r\n\r\n    private static Parent loadFXML(String fxml) throws IOException {\r\n        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + \".fxml\"));\r\n        return fxmlLoader.load();\r\n    }\r\n\r\n    public static void main(String[] args) {\r\n        launch();\r\n    }\r\n\r\n}
+===================================================================
+diff --git a/src/main/java/dsounds/App.java b/src/main/java/dsounds/App.java
+--- a/src/main/java/dsounds/App.java	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/src/main/java/dsounds/App.java	(date 1776588467884)
+@@ -28,12 +28,15 @@
+             throw new IOException("Could not load user storage.", ex);
+         }
+ 
+-        scene = new Scene(loadFXML("auth"), 760, 560);
++        scene = new Scene(loadFXML("auth"));
++        scene.getStylesheets().add(App.class.getResource("style.css").toExternalForm());
+         stage.setScene(scene);
+         stage.setTitle("dSounds");
++        stage.setMaximized(true);
+         stage.show();
+     }
+ 
++
+     @Override
+     public void stop() throws IOException {
+         if (authController != null) {
+@@ -43,6 +46,7 @@
+ 
+     public static void setRoot(String fxml) throws IOException {
+         scene.setRoot(loadFXML(fxml));
++
+     }
+ 
+     public static LocalAuthController getAuthController() {
+Index: target/classes/dsounds/playlist.fxml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<?import javafx.geometry.Insets?>\r\n<?import javafx.scene.control.Button?>\r\n<?import javafx.scene.control.CheckBox?>\r\n<?import javafx.scene.control.Label?>\r\n<?import javafx.scene.control.ListView?>\r\n<?import javafx.scene.control.TextArea?>\r\n<?import javafx.scene.control.TextField?>\r\n<?import javafx.scene.layout.BorderPane?>\r\n<?import javafx.scene.layout.HBox?>\r\n<?import javafx.scene.layout.Priority?>\r\n<?import javafx.scene.layout.VBox?>\r\n\r\n<BorderPane xmlns=\"http://javafx.com/javafx/8.0.171\" xmlns:fx=\"http://javafx.com/fxml/1\" fx:controller=\"dsounds.controllers.PlaylistController\">\r\n    <top>\r\n        <VBox spacing=\"8.0\">\r\n            <children>\r\n                <Label text=\"Playlists\" style=\"-fx-font-size: 20px; -fx-font-weight: bold;\" />\r\n                <Label text=\"Create public/private playlists and manage songs.\" />\r\n                <HBox spacing=\"8.0\">\r\n                    <children>\r\n                        <TextField fx:id=\"searchField\" promptText=\"Search songs by title, artist, genre, publisher, or album\" HBox.hgrow=\"ALWAYS\" />\r\n                        <Button fx:id=\"clearSearchButton\" text=\"Clear\" onAction=\"#clearSearch\" />\r\n                    </children>\r\n                </HBox>\r\n                <HBox spacing=\"8.0\">\r\n                    <children>\r\n                        <Button text=\"Refresh\" onAction=\"#refreshAll\" />\r\n                        <Button text=\"Back to Dashboard\" onAction=\"#switchToDashboard\" />\r\n                    </children>\r\n                </HBox>\r\n            </children>\r\n            <padding>\r\n                <Insets top=\"16.0\" right=\"20.0\" bottom=\"12.0\" left=\"20.0\" />\r\n            </padding>\r\n        </VBox>\r\n    </top>\r\n\r\n    <center>\r\n        <HBox spacing=\"12.0\">\r\n            <children>\r\n                <VBox spacing=\"8.0\" prefWidth=\"280.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <Label text=\"My Visible Playlists\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <ListView fx:id=\"playlistListView\" prefHeight=\"420.0\" VBox.vgrow=\"ALWAYS\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets top=\"0.0\" right=\"0.0\" bottom=\"20.0\" left=\"20.0\" />\r\n                    </padding>\r\n                </VBox>\r\n\r\n                <VBox spacing=\"8.0\" prefWidth=\"320.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <Label text=\"Playlist Details\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <TextField fx:id=\"playlistNameField\" promptText=\"Playlist name\" />\r\n                        <CheckBox fx:id=\"publicPlaylistCheckBox\" text=\"Public playlist\" selected=\"true\" />\r\n                        <TextArea fx:id=\"playlistDescriptionArea\" promptText=\"Description\" prefRowCount=\"4\" wrapText=\"true\" />\r\n\r\n                        <HBox spacing=\"8.0\">\r\n                            <children>\r\n                                <Button fx:id=\"createPlaylistButton\" text=\"Create\" onAction=\"#createPlaylist\" />\r\n                                <Button fx:id=\"updatePlaylistButton\" text=\"Update\" onAction=\"#updatePlaylist\" />\r\n                                <Button fx:id=\"deletePlaylistButton\" text=\"Delete\" onAction=\"#deletePlaylist\" />\r\n                            </children>\r\n                        </HBox>\r\n\r\n                        <HBox spacing=\"8.0\">\r\n                            <children>\r\n                                <Button fx:id=\"playInOrderButton\" text=\"Play In Order\" onAction=\"#playPlaylistInOrder\" />\r\n                                <Button fx:id=\"playRandomButton\" text=\"Play Random\" onAction=\"#playPlaylistRandom\" />\r\n                                <Button fx:id=\"repeatModeButton\" text=\"Repeat: Off\" onAction=\"#toggleRepeatMode\" />\r\n                                <Button fx:id=\"stopPlaybackButton\" text=\"Stop\" onAction=\"#stopPlayback\" disable=\"true\" />\r\n                            </children>\r\n                        </HBox>\r\n\r\n                        <Label text=\"Songs in playlist\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <ListView fx:id=\"playlistSongsListView\" prefHeight=\"170.0\" VBox.vgrow=\"ALWAYS\" />\r\n                        <Button fx:id=\"removeSongButton\" text=\"Remove Selected Song\" onAction=\"#removeSelectedSongFromPlaylist\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets top=\"0.0\" right=\"0.0\" bottom=\"20.0\" left=\"0.0\" />\r\n                    </padding>\r\n                </VBox>\r\n\r\n                <VBox spacing=\"8.0\" prefWidth=\"320.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <Label text=\"Available Songs\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <ListView fx:id=\"availableSongsListView\" prefHeight=\"420.0\" VBox.vgrow=\"ALWAYS\" />\r\n                        <Button fx:id=\"addSongButton\" text=\"Add Selected Song to Playlist\" onAction=\"#addSelectedSongToPlaylist\" />\r\n                        <Label fx:id=\"statusLabel\" text=\"\" wrapText=\"true\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets top=\"0.0\" right=\"20.0\" bottom=\"20.0\" left=\"0.0\" />\r\n                    </padding>\r\n                </VBox>\r\n            </children>\r\n        </HBox>\r\n    </center>\r\n</BorderPane>\r\n
+===================================================================
+diff --git a/target/classes/dsounds/playlist.fxml b/target/classes/dsounds/playlist.fxml
+--- a/target/classes/dsounds/playlist.fxml	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/target/classes/dsounds/playlist.fxml	(date 1776588853971)
+@@ -67,9 +67,9 @@
+ 
+                         <HBox spacing="8.0">
+                             <children>
+-                                <Button fx:id="playInOrderButton" text="Play In Order" onAction="#playPlaylistInOrder" />
+-                                <Button fx:id="playRandomButton" text="Play Random" onAction="#playPlaylistRandom" />
+-                                <Button fx:id="repeatModeButton" text="Repeat: Off" onAction="#toggleRepeatMode" />
++                                <Button fx:id="playInOrderButton" text="Play In Order" onAction="#playPlaylistInOrder" prefWidth="120" />
++                                <Button fx:id="playRandomButton" text="Play Random" onAction="#playPlaylistRandom" prefWidth="120" />
++                                <Button fx:id="repeatModeButton" text="Repeat: Off" onAction="#toggleRepeatMode" prefWidth="120" />
+                                 <Button fx:id="stopPlaybackButton" text="Stop" onAction="#stopPlayback" disable="true" />
+                             </children>
+                         </HBox>
+Index: src/main/resources/dsounds/dashboard.fxml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<?import javafx.geometry.Insets?>\r\n<?import javafx.scene.control.Button?>\r\n<?import javafx.scene.control.Label?>\r\n<?import javafx.scene.layout.VBox?>\r\n\r\n<VBox alignment=\"CENTER\" spacing=\"20.0\" xmlns=\"http://javafx.com/javafx/8.0.171\" xmlns:fx=\"http://javafx.com/fxml/1\" fx:controller=\"dsounds.controllers.DashboardController\">\r\n   <children>\r\n      <Label text=\"Dashboard\" style=\"-fx-font-size: 22px; -fx-font-weight: bold;\" />\r\n      <Button text=\"Open Music Browser\" onAction=\"#switchToBrowser\" />\r\n      <Button text=\"Open Artist Upload Page\" onAction=\"#switchToArtist\" />\r\n      <Button text=\"Open Local Song Library\" onAction=\"#switchToList\" />\r\n      <Button text=\"Open Playlists\" onAction=\"#switchToPlaylists\" />\r\n      <Button text=\"Logout\" onAction=\"#logout\" />\r\n   </children>\r\n   <padding>\r\n      <Insets bottom=\"20.0\" left=\"20.0\" right=\"20.0\" top=\"20.0\" />\r\n   </padding>\r\n</VBox>\r\n
+===================================================================
+diff --git a/src/main/resources/dsounds/dashboard.fxml b/src/main/resources/dsounds/dashboard.fxml
+--- a/src/main/resources/dsounds/dashboard.fxml	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/src/main/resources/dsounds/dashboard.fxml	(date 1776428208252)
+@@ -5,16 +5,35 @@
+ <?import javafx.scene.control.Label?>
+ <?import javafx.scene.layout.VBox?>
+ 
+-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dsounds.controllers.DashboardController">
++<VBox alignment="CENTER" spacing="20.0"
++      xmlns="http://javafx.com/javafx/8.0.171"
++      xmlns:fx="http://javafx.com/fxml/1"
++      fx:controller="dsounds.controllers.DashboardController">
+    <children>
+-      <Label text="Dashboard" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
++      <Label fx:id="welcomeLabel" text="Dashboard"
++             style="-fx-font-size: 22px; -fx-font-weight: bold;" />
++      <Label fx:id="roleLabel" text=""
++             style="-fx-font-size: 14px; -fx-text-fill: grey;" />
++
++      <!-- Tous les utilisateurs -->
+       <Button text="Open Music Browser" onAction="#switchToBrowser" />
+-      <Button text="Open Artist Upload Page" onAction="#switchToArtist" />
+-      <Button text="Open Local Song Library" onAction="#switchToList" />
+-      <Button text="Open Playlists" onAction="#switchToPlaylists" />
++
++      <!-- Abonné seulement -->
++      <Button fx:id="btnArtist" text="Open Artist Upload Page" onAction="#switchToArtist" />
++      <Button fx:id="btnLibrary" text="Open Local Song Library" onAction="#switchToList" />
++      <Button fx:id="btnPlaylists" text="Open Playlists" onAction="#switchToPlaylists" />
++
++      <!-- Admin seulement -->
++      <Button fx:id="btnManageUsers" text="Manage Users" onAction="#switchToManageUsers" />
++      <Button fx:id="btnStats" text="View Statistics" onAction="#switchToStats" />
++
++      <!-- Visiteur info -->
++      <Label fx:id="visitorInfoLabel" text=""
++             style="-fx-font-size: 12px; -fx-text-fill: orange;" />
++
+       <Button text="Logout" onAction="#logout" />
+    </children>
+    <padding>
+       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+-</VBox>
++</VBox>
+\ No newline at end of file
+Index: src/main/resources/dsounds/playlist.fxml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<?import javafx.geometry.Insets?>\r\n<?import javafx.scene.control.Button?>\r\n<?import javafx.scene.control.CheckBox?>\r\n<?import javafx.scene.control.Label?>\r\n<?import javafx.scene.control.ListView?>\r\n<?import javafx.scene.control.TextArea?>\r\n<?import javafx.scene.control.TextField?>\r\n<?import javafx.scene.layout.BorderPane?>\r\n<?import javafx.scene.layout.HBox?>\r\n<?import javafx.scene.layout.Priority?>\r\n<?import javafx.scene.layout.VBox?>\r\n\r\n<BorderPane xmlns=\"http://javafx.com/javafx/8.0.171\" xmlns:fx=\"http://javafx.com/fxml/1\" fx:controller=\"dsounds.controllers.PlaylistController\">\r\n    <top>\r\n        <VBox spacing=\"8.0\">\r\n            <children>\r\n                <Label text=\"Playlists\" style=\"-fx-font-size: 20px; -fx-font-weight: bold;\" />\r\n                <Label text=\"Create public/private playlists and manage songs.\" />\r\n                <HBox spacing=\"8.0\">\r\n                    <children>\r\n                        <TextField fx:id=\"searchField\" promptText=\"Search songs by title, artist, genre, publisher, or album\" HBox.hgrow=\"ALWAYS\" />\r\n                        <Button fx:id=\"clearSearchButton\" text=\"Clear\" onAction=\"#clearSearch\" />\r\n                    </children>\r\n                </HBox>\r\n                <HBox spacing=\"8.0\">\r\n                    <children>\r\n                        <Button text=\"Refresh\" onAction=\"#refreshAll\" />\r\n                        <Button text=\"Back to Dashboard\" onAction=\"#switchToDashboard\" />\r\n                    </children>\r\n                </HBox>\r\n            </children>\r\n            <padding>\r\n                <Insets top=\"16.0\" right=\"20.0\" bottom=\"12.0\" left=\"20.0\" />\r\n            </padding>\r\n        </VBox>\r\n    </top>\r\n\r\n    <center>\r\n        <HBox spacing=\"12.0\">\r\n            <children>\r\n                <VBox spacing=\"8.0\" prefWidth=\"280.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <Label text=\"My Visible Playlists\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <ListView fx:id=\"playlistListView\" prefHeight=\"420.0\" VBox.vgrow=\"ALWAYS\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets top=\"0.0\" right=\"0.0\" bottom=\"20.0\" left=\"20.0\" />\r\n                    </padding>\r\n                </VBox>\r\n\r\n                <VBox spacing=\"8.0\" prefWidth=\"320.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <Label text=\"Playlist Details\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <TextField fx:id=\"playlistNameField\" promptText=\"Playlist name\" />\r\n                        <CheckBox fx:id=\"publicPlaylistCheckBox\" text=\"Public playlist\" selected=\"true\" />\r\n                        <TextArea fx:id=\"playlistDescriptionArea\" promptText=\"Description\" prefRowCount=\"4\" wrapText=\"true\" />\r\n\r\n                        <HBox spacing=\"8.0\">\r\n                            <children>\r\n                                <Button fx:id=\"createPlaylistButton\" text=\"Create\" onAction=\"#createPlaylist\" />\r\n                                <Button fx:id=\"updatePlaylistButton\" text=\"Update\" onAction=\"#updatePlaylist\" />\r\n                                <Button fx:id=\"deletePlaylistButton\" text=\"Delete\" onAction=\"#deletePlaylist\" />\r\n                            </children>\r\n                        </HBox>\r\n\r\n                        <HBox spacing=\"8.0\">\r\n                            <children>\r\n                                <Button fx:id=\"playInOrderButton\" text=\"Play In Order\" onAction=\"#playPlaylistInOrder\" />\r\n                                <Button fx:id=\"playRandomButton\" text=\"Play Random\" onAction=\"#playPlaylistRandom\" />\r\n                                <Button fx:id=\"repeatModeButton\" text=\"Repeat: Off\" onAction=\"#toggleRepeatMode\" />\r\n                                <Button fx:id=\"stopPlaybackButton\" text=\"Stop\" onAction=\"#stopPlayback\" disable=\"true\" />\r\n                            </children>\r\n                        </HBox>\r\n\r\n                        <Label text=\"Songs in playlist\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <ListView fx:id=\"playlistSongsListView\" prefHeight=\"170.0\" VBox.vgrow=\"ALWAYS\" />\r\n                        <Button fx:id=\"removeSongButton\" text=\"Remove Selected Song\" onAction=\"#removeSelectedSongFromPlaylist\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets top=\"0.0\" right=\"0.0\" bottom=\"20.0\" left=\"0.0\" />\r\n                    </padding>\r\n                </VBox>\r\n\r\n                <VBox spacing=\"8.0\" prefWidth=\"320.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <Label text=\"Available Songs\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <ListView fx:id=\"availableSongsListView\" prefHeight=\"420.0\" VBox.vgrow=\"ALWAYS\" />\r\n                        <Button fx:id=\"addSongButton\" text=\"Add Selected Song to Playlist\" onAction=\"#addSelectedSongToPlaylist\" />\r\n                        <Label fx:id=\"statusLabel\" text=\"\" wrapText=\"true\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets top=\"0.0\" right=\"20.0\" bottom=\"20.0\" left=\"0.0\" />\r\n                    </padding>\r\n                </VBox>\r\n            </children>\r\n        </HBox>\r\n    </center>\r\n</BorderPane>\r\n
+===================================================================
+diff --git a/src/main/resources/dsounds/playlist.fxml b/src/main/resources/dsounds/playlist.fxml
+--- a/src/main/resources/dsounds/playlist.fxml	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/src/main/resources/dsounds/playlist.fxml	(date 1776588853971)
+@@ -67,9 +67,9 @@
+ 
+                         <HBox spacing="8.0">
+                             <children>
+-                                <Button fx:id="playInOrderButton" text="Play In Order" onAction="#playPlaylistInOrder" />
+-                                <Button fx:id="playRandomButton" text="Play Random" onAction="#playPlaylistRandom" />
+-                                <Button fx:id="repeatModeButton" text="Repeat: Off" onAction="#toggleRepeatMode" />
++                                <Button fx:id="playInOrderButton" text="Play In Order" onAction="#playPlaylistInOrder" prefWidth="120" />
++                                <Button fx:id="playRandomButton" text="Play Random" onAction="#playPlaylistRandom" prefWidth="120" />
++                                <Button fx:id="repeatModeButton" text="Repeat: Off" onAction="#toggleRepeatMode" prefWidth="120" />
+                                 <Button fx:id="stopPlaybackButton" text="Stop" onAction="#stopPlayback" disable="true" />
+                             </children>
+                         </HBox>
+Index: src/main/resources/dsounds/list.fxml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<?import javafx.geometry.Insets?>\r\n<?import javafx.scene.control.Button?>\r\n<?import javafx.scene.control.Label?>\r\n<?import javafx.scene.control.ListView?>\r\n<?import javafx.scene.control.TextArea?>\r\n<?import javafx.scene.control.TextField?>\r\n<?import javafx.scene.image.ImageView?>\r\n<?import javafx.scene.layout.BorderPane?>\r\n<?import javafx.scene.layout.HBox?>\r\n<?import javafx.scene.layout.Priority?>\r\n<?import javafx.scene.layout.VBox?>\r\n\r\n<BorderPane xmlns=\"http://javafx.com/javafx/8.0.171\" xmlns:fx=\"http://javafx.com/fxml/1\" fx:controller=\"dsounds.controllers.ListController\">\r\n    <top>\r\n        <VBox spacing=\"8.0\">\r\n            <children>\r\n                <Label text=\"Local Song Library\" style=\"-fx-font-size: 20px; -fx-font-weight: bold;\" />\r\n                <Label text=\"All songs saved inside local_storage are listed here.\" />\r\n                <HBox spacing=\"8.0\">\r\n                    <children>\r\n                        <TextField fx:id=\"searchField\" promptText=\"Search by title, artist, genre, publisher, or album\" HBox.hgrow=\"ALWAYS\" />\r\n                        <Button fx:id=\"clearSearchButton\" text=\"Clear\" onAction=\"#clearSearch\" />\r\n                    </children>\r\n                </HBox>\r\n                <HBox spacing=\"8.0\">\r\n                    <children>\r\n                        <Button text=\"Refresh\" onAction=\"#refreshSongs\" />\r\n                        <Button text=\"Play Selected\" onAction=\"#playSelectedSong\" />\r\n                        <Button text=\"Stop\" onAction=\"#stopPlayback\" />\r\n                        <Button fx:id=\"editSongButton\" text=\"Edit Selected\" onAction=\"#editSelectedSong\" disable=\"true\" />\r\n                        <Button text=\"Back to Dashboard\" onAction=\"#switchToDashboard\" />\r\n                    </children>\r\n                </HBox>\r\n            </children>\r\n            <padding>\r\n                <Insets bottom=\"12.0\" left=\"20.0\" right=\"20.0\" top=\"20.0\" />\r\n            </padding>\r\n        </VBox>\r\n    </top>\r\n\r\n    <center>\r\n        <HBox spacing=\"12.0\">\r\n            <children>\r\n                <VBox spacing=\"8.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <Label fx:id=\"songCountLabel\" text=\"Songs found: 0\" />\r\n                        <ListView fx:id=\"songListView\" prefWidth=\"320.0\" prefHeight=\"420.0\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets bottom=\"20.0\" left=\"20.0\" right=\"0.0\" top=\"0.0\" />\r\n                    </padding>\r\n                </VBox>\r\n\r\n                <VBox spacing=\"8.0\" HBox.hgrow=\"ALWAYS\">\r\n                    <children>\r\n                        <ImageView fx:id=\"coverImageView\" fitWidth=\"220.0\" fitHeight=\"220.0\" preserveRatio=\"true\" />\r\n                        <Label text=\"Song details\" style=\"-fx-font-size: 16px; -fx-font-weight: bold;\" />\r\n                        <TextArea fx:id=\"songDetailsArea\" editable=\"false\" wrapText=\"true\" prefRowCount=\"20\" VBox.vgrow=\"ALWAYS\" />\r\n                        <Label fx:id=\"statusLabel\" text=\"\" />\r\n\r\n                        <Label text=\"Your review\" style=\"-fx-font-size: 14px; -fx-font-weight: bold;\" />\r\n                        <TextArea fx:id=\"reviewCommentArea\" promptText=\"Write a short comment (max 140 characters)\" prefRowCount=\"3\" wrapText=\"true\" />\r\n                        <HBox spacing=\"8.0\">\r\n                            <children>\r\n                                <Button fx:id=\"likeButton\" text=\"Like\" onAction=\"#likeSelectedSong\" />\r\n                                <Button fx:id=\"dislikeButton\" text=\"Dislike\" onAction=\"#dislikeSelectedSong\" />\r\n                            </children>\r\n                        </HBox>\r\n                        <Label fx:id=\"reviewStatsLabel\" text=\"No song selected.\" wrapText=\"true\" />\r\n                    </children>\r\n                    <padding>\r\n                        <Insets bottom=\"20.0\" left=\"0.0\" right=\"20.0\" top=\"0.0\" />\r\n                    </padding>\r\n                </VBox>\r\n            </children>\r\n        </HBox>\r\n    </center>\r\n</BorderPane>\r\n
+===================================================================
+diff --git a/src/main/resources/dsounds/list.fxml b/src/main/resources/dsounds/list.fxml
+--- a/src/main/resources/dsounds/list.fxml	(revision c9acfcf1d9dcc7a995eb42d2f0c05a6e2d52d74f)
++++ b/src/main/resources/dsounds/list.fxml	(date 1776589912991)
+@@ -41,40 +41,50 @@
+     </top>
+ 
+     <center>
+-        <HBox spacing="12.0">
++        <HBox spacing="16.0" HBox.hgrow="ALWAYS">
++            <padding>
++                <Insets bottom="20.0" left="20.0" right="20.0" />
++            </padding>
+             <children>
+-                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
++                <!-- Left: song list -->
++                <VBox spacing="8.0" prefWidth="350" HBox.hgrow="SOMETIMES">
+                     <children>
+                         <Label fx:id="songCountLabel" text="Songs found: 0" />
+-                        <ListView fx:id="songListView" prefWidth="320.0" prefHeight="420.0" />
++                        <ListView fx:id="songListView" VBox.vgrow="ALWAYS" />
+                     </children>
+-                    <padding>
+-                        <Insets bottom="20.0" left="20.0" right="0.0" top="0.0" />
+-                    </padding>
+                 </VBox>
+ 
+-                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
++                <!-- Right: details + review -->
++                <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                     <children>
+-                        <ImageView fx:id="coverImageView" fitWidth="220.0" fitHeight="220.0" preserveRatio="true" />
+-                        <Label text="Song details" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+-                        <TextArea fx:id="songDetailsArea" editable="false" wrapText="true" prefRowCount="20" VBox.vgrow="ALWAYS" />
+-                        <Label fx:id="statusLabel" text="" />
++                        <HBox spacing="16.0" alignment="TOP_LEFT">
++                            <children>
++                                <ImageView fx:id="coverImageView" fitWidth="180.0" fitHeight="180.0" preserveRatio="true" />
++                                <VBox spacing="6.0" HBox.hgrow="ALWAYS">
++                                    <children>
++                                        <Label text="Song details" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
++                                        <Label fx:id="statusLabel" text="" wrapText="true" />
++                                    </children>
++                                </VBox>
++                            </children>
++                        </HBox>
++
++                        <TextArea fx:id="songDetailsArea" editable="false" wrapText="true"
++                                  VBox.vgrow="ALWAYS" maxHeight="Infinity" />
+ 
+                         <Label text="Your review" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+-                        <TextArea fx:id="reviewCommentArea" promptText="Write a short comment (max 140 characters)" prefRowCount="3" wrapText="true" />
+-                        <HBox spacing="8.0">
++                        <TextArea fx:id="reviewCommentArea" promptText="Write a short comment (max 140 characters)"
++                                  prefRowCount="2" wrapText="true" maxHeight="80" />
++                        <HBox spacing="8.0" alignment="CENTER_LEFT">
+                             <children>
+                                 <Button fx:id="likeButton" text="Like" onAction="#likeSelectedSong" />
+                                 <Button fx:id="dislikeButton" text="Dislike" onAction="#dislikeSelectedSong" />
++                                <Label fx:id="reviewStatsLabel" text="No song selected." wrapText="true" />
+                             </children>
+                         </HBox>
+-                        <Label fx:id="reviewStatsLabel" text="No song selected." wrapText="true" />
+                     </children>
+-                    <padding>
+-                        <Insets bottom="20.0" left="0.0" right="20.0" top="0.0" />
+-                    </padding>
+                 </VBox>
+             </children>
+         </HBox>
+     </center>
+-</BorderPane>
++</BorderPane>
+\ No newline at end of file

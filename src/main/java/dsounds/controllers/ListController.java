@@ -394,13 +394,19 @@ public class ListController {
         Path coverPath = resolveCoverPath(song);
         if (coverPath == null || !Files.exists(coverPath)) {
             coverImageView.setImage(null);
+            coverImageView.setVisible(false);
+            coverImageView.setManaged(false);
             return;
         }
 
         try {
             coverImageView.setImage(new Image(coverPath.toUri().toString(), true));
+            coverImageView.setVisible(true);
+            coverImageView.setManaged(true);
         } catch (IllegalArgumentException ex) {
             coverImageView.setImage(null);
+            coverImageView.setVisible(false);
+            coverImageView.setManaged(false);
         }
     }
 

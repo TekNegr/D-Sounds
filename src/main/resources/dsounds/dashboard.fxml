@@ -5,13 +5,28 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dsounds.controllers.DashboardController">
+<VBox alignment="CENTER" spacing="20.0"
+      xmlns="http://javafx.com/javafx/8.0.171"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="dsounds.controllers.DashboardController">
    <children>
-      <Label text="Dashboard" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+      <Label fx:id="welcomeLabel" text="Dashboard"
+             style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+      <Label fx:id="roleLabel" text=""
+             style="-fx-font-size: 14px; -fx-text-fill: grey;" />
+
       <Button text="Open Music Browser" onAction="#switchToBrowser" />
-      <Button text="Open Artist Upload Page" onAction="#switchToArtist" />
-      <Button text="Open Local Song Library" onAction="#switchToList" />
-      <Button text="Open Playlists" onAction="#switchToPlaylists" />
+
+      <Button fx:id="btnArtist" text="Open Artist Upload Page" onAction="#switchToArtist" />
+      <Button fx:id="btnLibrary" text="Open Local Song Library" onAction="#switchToList" />
+      <Button fx:id="btnPlaylists" text="Open Playlists" onAction="#switchToPlaylists" />
+
+      <Button fx:id="btnManageUsers" text="Manage Users" onAction="#switchToManageUsers" />
+      <Button fx:id="btnStats" text="View Statistics" onAction="#switchToStats" />
+
+      <Label fx:id="visitorInfoLabel" text=""
+             style="-fx-font-size: 12px; -fx-text-fill: orange;" />
+
       <Button text="Logout" onAction="#logout" />
    </children>
    <padding>

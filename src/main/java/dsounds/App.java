@@ -28,9 +28,11 @@ public class App extends Application {
             throw new IOException("Could not load user storage.", ex);
         }
 
-        scene = new Scene(loadFXML("auth"), 760, 560);
+        scene = new Scene(loadFXML("auth"));
+        scene.getStylesheets().add(App.class.getResource("style.css").toExternalForm());
         stage.setScene(scene);
         stage.setTitle("dSounds");
+        stage.setMaximized(true);
         stage.show();
     }
 

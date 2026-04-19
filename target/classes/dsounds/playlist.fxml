@@ -67,13 +67,12 @@
 
                         <HBox spacing="8.0">
                             <children>
-                                <Button fx:id="playInOrderButton" text="Play In Order" onAction="#playPlaylistInOrder" />
-                                <Button fx:id="playRandomButton" text="Play Random" onAction="#playPlaylistRandom" />
-                                <Button fx:id="repeatModeButton" text="Repeat: Off" onAction="#toggleRepeatMode" />
+                                <Button fx:id="playInOrderButton" text="Play In Order" onAction="#playPlaylistInOrder" prefWidth="120" />
+                                <Button fx:id="playRandomButton" text="Play Random" onAction="#playPlaylistRandom" prefWidth="120" />
+                                <Button fx:id="repeatModeButton" text="Repeat: Off" onAction="#toggleRepeatMode" prefWidth="120" />
                                 <Button fx:id="stopPlaybackButton" text="Stop" onAction="#stopPlayback" disable="true" />
                             </children>
                         </HBox>
-
                         <Label text="Songs in playlist" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
                         <ListView fx:id="playlistSongsListView" prefHeight="170.0" VBox.vgrow="ALWAYS" />
                         <Button fx:id="removeSongButton" text="Remove Selected Song" onAction="#removeSelectedSongFromPlaylist" />

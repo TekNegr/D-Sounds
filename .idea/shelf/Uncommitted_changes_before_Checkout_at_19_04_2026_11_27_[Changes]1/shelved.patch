@@ -1,0 +1,905 @@
+Index: .idea/.gitignore
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+new file mode 100644
+--- /dev/null	(date 1776176913562)
++++ b/.idea/.gitignore	(date 1776176913562)
+@@ -0,0 +1,10 @@
++# Default ignored files
++/shelf/
++/workspace.xml
++# Ignored default folder with query files
++/queries/
++# Datasource local storage ignored files
++/dataSources/
++/dataSources.local.xml
++# Editor-based HTTP Client requests
++/httpRequests/
+Index: src/main/resources/dsounds/admin_users.fxml
+===================================================================
+diff --git a/src/main/resources/dsounds/admin_users.fxml b/src/main/resources/dsounds/admin_users.fxml
+new file mode 100644
+--- /dev/null	(date 1776428511739)
++++ b/src/main/resources/dsounds/admin_users.fxml	(date 1776428511739)
+@@ -0,0 +1,58 @@
++<?xml version="1.0" encoding="UTF-8"?>
++
++<?import javafx.geometry.Insets?>
++<?import javafx.scene.control.Button?>
++<?import javafx.scene.control.Label?>
++<?import javafx.scene.control.ListView?>
++<?import javafx.scene.layout.HBox?>
++<?import javafx.scene.layout.VBox?>
++<?import javafx.scene.layout.Priority?>
++
++<VBox spacing="15.0"
++      xmlns="http://javafx.com/javafx/8.0.171"
++      xmlns:fx="http://javafx.com/fxml/1"
++      fx:controller="dsounds.controllers.AdminUsersController">
++    <padding>
++        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
++    </padding>
++    <children>
++        <HBox alignment="CENTER_LEFT" spacing="10.0">
++            <Label text="Manage Users"
++                   style="-fx-font-size: 22px; -fx-font-weight: bold;" />
++            <HBox HBox.hgrow="ALWAYS" />
++            <Button text="← Back" onAction="#backToDashboard" />
++        </HBox>
++
++        <Label fx:id="statusLabel" text=""
++               style="-fx-text-fill: green;" />
++
++        <HBox spacing="20.0" VBox.vgrow="ALWAYS">
++            <!-- Liste des utilisateurs -->
++            <VBox spacing="10.0" HBox.hgrow="ALWAYS">
++                <Label text="All Users:" style="-fx-font-weight: bold;" />
++                <ListView fx:id="userListView" VBox.vgrow="ALWAYS" />
++                <Button text="Refresh" onAction="#refreshList" />
++            </VBox>
++
++            <!-- Détails et actions -->
++            <VBox fx:id="detailPane" spacing="10.0" minWidth="280.0">
++                <Label text="User Details" style="-fx-font-weight: bold;" />
++                <Label fx:id="detailUsername" text="" />
++                <Label fx:id="detailEmail" text="" />
++                <Label fx:id="detailRole" text="" />
++                <Label fx:id="detailStatus" text="" />
++                <Label fx:id="detailCreated" text="" />
++
++                <HBox spacing="10.0">
++                    <Button fx:id="btnSuspend" text="Suspend"
++                            onAction="#suspendUser" />
++                    <Button fx:id="btnReactivate" text="Reactivate"
++                            onAction="#reactivateUser" />
++                </HBox>
++                <Button fx:id="btnDelete" text="Delete User"
++                        onAction="#deleteUser"
++                        style="-fx-text-fill: red;" />
++            </VBox>
++        </HBox>
++    </children>
++</VBox>
+\ No newline at end of file
+Index: src/main/java/dsounds/AdminUsersController.java
+===================================================================
+diff --git a/src/main/java/dsounds/AdminUsersController.java b/src/main/java/dsounds/AdminUsersController.java
+new file mode 100644
+--- /dev/null	(date 1776428602225)
++++ b/src/main/java/dsounds/AdminUsersController.java	(date 1776428602225)
+@@ -0,0 +1,143 @@
++package dsounds.controllers;
++
++import dsounds.App;
++import dsounds.models.User;
++import dsounds.models.UserRole;
++
++import java.io.IOException;
++import java.time.ZoneId;
++import java.time.format.DateTimeFormatter;
++import java.util.List;
++
++import javafx.collections.FXCollections;
++import javafx.fxml.FXML;
++import javafx.scene.control.Button;
++import javafx.scene.control.Label;
++import javafx.scene.control.ListView;
++import javafx.scene.layout.VBox;
++
++public class AdminUsersController {
++
++    @FXML private ListView<String> userListView;
++    @FXML private Label statusLabel;
++    @FXML private VBox detailPane;
++    @FXML private Label detailUsername;
++    @FXML private Label detailEmail;
++    @FXML private Label detailRole;
++    @FXML private Label detailStatus;
++    @FXML private Label detailCreated;
++    @FXML private Button btnSuspend;
++    @FXML private Button btnReactivate;
++    @FXML private Button btnDelete;
++
++    private List<User> users;
++
++    private static final DateTimeFormatter DATE_FMT =
++            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
++                    .withZone(ZoneId.systemDefault());
++
++    @FXML
++    private void initialize() {
++        detailPane.setVisible(false);
++        refreshList();
++
++        userListView.getSelectionModel().selectedIndexProperty()
++                .addListener((obs, oldVal, newVal) -> {
++                    int idx = newVal.intValue();
++                    if (idx >= 0 && idx < users.size()) {
++                        showUserDetails(users.get(idx));
++                    }
++                });
++    }
++
++    @FXML
++    private void refreshList() {
++        users = App.getAuthController().listUsers();
++        userListView.setItems(FXCollections.observableArrayList(
++                users.stream()
++                        .map(u -> u.getUsername()
++                                + " [" + u.getRole() + "]"
++                                + (u.isActive() ? "" : " (suspended)"))
++                        .collect(java.util.stream.Collectors.toList())
++        ));
++        detailPane.setVisible(false);
++        statusLabel.setText("Users loaded: " + users.size());
++    }
++
++    private void showUserDetails(User user) {
++        detailPane.setVisible(true);
++        detailUsername.setText("Username: " + user.getUsername());
++        detailEmail.setText("Email: " + user.getEmail());
++        detailRole.setText("Role: " + user.getRole());
++        detailStatus.setText("Status: " + (user.isActive() ? "Active" : "Suspended"));
++        detailCreated.setText("Created: " + DATE_FMT.format(user.getCreatedAt()));
++
++        boolean isAdmin = user.getRole() == UserRole.ADMIN;
++        btnSuspend.setVisible(!isAdmin && user.isActive());
++        btnSuspend.setManaged(!isAdmin && user.isActive());
++        btnReactivate.setVisible(!isAdmin && !user.isActive());
++        btnReactivate.setManaged(!isAdmin && !user.isActive());
++        btnDelete.setVisible(!isAdmin);
++        btnDelete.setManaged(!isAdmin);
++    }
++
++    @FXML
++    private void suspendUser() {
++        User selected = getSelectedUser();
++        if (selected == null) return;
++        try {
++            App.getAuthController().suspendUser(selected.getUsername());
++            statusLabel.setText("User " + selected.getUsername() + " suspended.");
++            statusLabel.setStyle("-fx-text-fill: orange;");
++            refreshList();
++        } catch (AuthException ex) {
++            statusLabel.setText(ex.getMessage());
++            statusLabel.setStyle("-fx-text-fill: red;");
++        }
++    }
++
++    @FXML
++    private void reactivateUser() {
++        User selected = getSelectedUser();
++        if (selected == null) return;
++        try {
++            App.getAuthController().reactivateUser(selected.getUsername());
++            statusLabel.setText("User " + selected.getUsername() + " reactivated.");
++            statusLabel.setStyle("-fx-text-fill: green;");
++            refreshList();
++        } catch (AuthException ex) {
++            statusLabel.setText(ex.getMessage());
++            statusLabel.setStyle("-fx-text-fill: red;");
++        }
++    }
++
++    @FXML
++    private void deleteUser() {
++        User selected = getSelectedUser();
++        if (selected == null) return;
++        try {
++            App.getAuthController().deleteUser(selected.getUsername());
++            statusLabel.setText("User " + selected.getUsername() + " deleted.");
++            statusLabel.setStyle("-fx-text-fill: green;");
++            refreshList();
++        } catch (AuthException ex) {
++            statusLabel.setText(ex.getMessage());
++            statusLabel.setStyle("-fx-text-fill: red;");
++        }
++    }
++
++    @FXML
++    private void backToDashboard() throws IOException {
++        App.setRoot("dashboard");
++    }
++
++    private User getSelectedUser() {
++        int idx = userListView.getSelectionModel().getSelectedIndex();
++        if (idx < 0 || idx >= users.size()) {
++            statusLabel.setText("Please select a user first.");
++            statusLabel.setStyle("-fx-text-fill: red;");
++            return null;
++        }
++        return users.get(idx);
++    }
++}
+\ No newline at end of file
+Index: src/main/resources/dsounds/admin_stats.fxml
+===================================================================
+diff --git a/src/main/resources/dsounds/admin_stats.fxml b/src/main/resources/dsounds/admin_stats.fxml
+new file mode 100644
+--- /dev/null	(date 1776587074930)
++++ b/src/main/resources/dsounds/admin_stats.fxml	(date 1776587074930)
+@@ -0,0 +1,74 @@
++<?xml version="1.0" encoding="UTF-8"?>
++
++<?import javafx.geometry.Insets?>
++<?import javafx.scene.control.Button?>
++<?import javafx.scene.control.Label?>
++<?import javafx.scene.layout.GridPane?>
++<?import javafx.scene.layout.HBox?>
++<?import javafx.scene.layout.VBox?>
++
++<VBox spacing="20.0"
++      xmlns="http://javafx.com/javafx/8.0.171"
++      xmlns:fx="http://javafx.com/fxml/1"
++      fx:controller="dsounds.controllers.AdminStatsController">
++    <padding>
++        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
++    </padding>
++    <children>
++        <HBox alignment="CENTER_LEFT" spacing="10.0">
++            <Label text="Statistics"
++                   style="-fx-font-size: 22px; -fx-font-weight: bold;" />
++            <HBox HBox.hgrow="ALWAYS" />
++            <Button text="Refresh" onAction="#refresh" />
++            <Button text="← Back" onAction="#backToDashboard" />
++        </HBox>
++
++        <GridPane hgap="20.0" vgap="12.0">
++            <!-- Users -->
++            <Label text="Users" style="-fx-font-size: 16px; -fx-font-weight: bold;"
++                   GridPane.columnIndex="0" GridPane.rowIndex="0"
++                   GridPane.columnSpan="2" />
++
++            <Label text="Total users:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
++            <Label fx:id="totalUsersLabel" text="0" style="-fx-font-weight: bold;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="1" />
++
++            <Label text="Subscribers:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
++            <Label fx:id="subscribersLabel" text="0" style="-fx-font-weight: bold;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="2" />
++
++            <Label text="Admins:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
++            <Label fx:id="adminsLabel" text="0" style="-fx-font-weight: bold;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="3" />
++
++            <Label text="Suspended:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
++            <Label fx:id="suspendedLabel" text="0" style="-fx-font-weight: bold; -fx-text-fill: orange;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="4" />
++
++            <!-- Catalogue -->
++            <Label text="Catalogue" style="-fx-font-size: 16px; -fx-font-weight: bold;"
++                   GridPane.columnIndex="0" GridPane.rowIndex="6"
++                   GridPane.columnSpan="2" />
++
++            <Label text="Total songs:" GridPane.columnIndex="0" GridPane.rowIndex="7" />
++            <Label fx:id="totalSongsLabel" text="0" style="-fx-font-weight: bold;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="7" />
++
++            <Label text="Total albums:" GridPane.columnIndex="0" GridPane.rowIndex="8" />
++            <Label fx:id="totalAlbumsLabel" text="0" style="-fx-font-weight: bold;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="8" />
++
++            <Label text="Total playlists:" GridPane.columnIndex="0" GridPane.rowIndex="9" />
++            <Label fx:id="totalPlaylistsLabel" text="0" style="-fx-font-weight: bold;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="9" />
++
++            <Label text="Unique artists:" GridPane.columnIndex="0" GridPane.rowIndex="10" />
++            <Label fx:id="uniqueArtistsLabel" text="0" style="-fx-font-weight: bold;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="10" />
++
++            <Label text="Unique genres:" GridPane.columnIndex="0" GridPane.rowIndex="11" />
++            <Label fx:id="uniqueGenresLabel" text="0" style="-fx-font-weight: bold;"
++                   GridPane.columnIndex="1" GridPane.rowIndex="11" />
++        </GridPane>
++    </children>
++</VBox>
+\ No newline at end of file
+Index: D-Sounds.iml
+===================================================================
+diff --git a/D-Sounds.iml b/D-Sounds.iml
+new file mode 100644
+--- /dev/null	(date 1776178061698)
++++ b/D-Sounds.iml	(date 1776178061698)
+@@ -0,0 +1,12 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module type="JAVA_MODULE" version="4">
++  <component name="NewModuleRootManager" inherit-compiler-output="true">
++    <exclude-output />
++    <content url="file://$MODULE_DIR$">
++      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
++    </content>
++    <orderEntry type="inheritedJdk" />
++    <orderEntry type="sourceFolder" forTests="false" />
++    <orderEntry type="library" name="lib" level="project" />
++  </component>
++</module>
+\ No newline at end of file
+Index: .idea/misc.xml
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+--- /dev/null	(date 1776425795249)
++++ b/.idea/misc.xml	(date 1776425795249)
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ExternalStorageConfigurationManager" enabled="true" />
++  <component name="MavenProjectsManager">
++    <option name="originalFiles">
++      <list>
++        <option value="$PROJECT_DIR$/pom.xml" />
++      </list>
++    </option>
++  </component>
++  <component name="ProjectRootManager" version="2" project-jdk-name="openjdk-25" project-jdk-type="JavaSDK">
++    <output url="file://$PROJECT_DIR$/out" />
++  </component>
++</project>
+\ No newline at end of file
+Index: src/main/java/dsounds/controllers/AdminStatsController.java
+===================================================================
+diff --git a/src/main/java/dsounds/controllers/AdminStatsController.java b/src/main/java/dsounds/controllers/AdminStatsController.java
+new file mode 100644
+--- /dev/null	(date 1776587107920)
++++ b/src/main/java/dsounds/controllers/AdminStatsController.java	(date 1776587107920)
+@@ -0,0 +1,104 @@
++package dsounds.controllers;
++
++import dsounds.App;
++import dsounds.models.Song;
++import dsounds.models.User;
++import dsounds.models.UserRole;
++import dsounds.repositories.AlbumRepository;
++import dsounds.repositories.PlaylistRepository;
++import dsounds.repositories.SongRepository;
++
++import java.io.IOException;
++import java.util.List;
++
++import javafx.fxml.FXML;
++import javafx.scene.control.Label;
++
++public class AdminStatsController {
++
++    @FXML private Label totalUsersLabel;
++    @FXML private Label subscribersLabel;
++    @FXML private Label adminsLabel;
++    @FXML private Label suspendedLabel;
++
++    @FXML private Label totalSongsLabel;
++    @FXML private Label totalAlbumsLabel;
++    @FXML private Label totalPlaylistsLabel;
++    @FXML private Label uniqueArtistsLabel;
++    @FXML private Label uniqueGenresLabel;
++
++    @FXML
++    private void initialize() {
++        refresh();
++    }
++
++    @FXML
++    private void refresh() {
++        loadUserStats();
++        loadCatalogueStats();
++    }
++
++    private void loadUserStats() {
++        List<User> users = App.getAuthController().listUsers();
++
++        long subscribers = users.stream()
++                .filter(u -> u.getRole() == UserRole.SUBSCRIBER)
++                .count();
++        long admins = users.stream()
++                .filter(u -> u.getRole() == UserRole.ADMIN)
++                .count();
++        long suspended = users.stream()
++                .filter(u -> !u.isActive())
++                .count();
++
++        totalUsersLabel.setText(String.valueOf(users.size()));
++        subscribersLabel.setText(String.valueOf(subscribers));
++        adminsLabel.setText(String.valueOf(admins));
++        suspendedLabel.setText(String.valueOf(suspended));
++    }
++
++    private void loadCatalogueStats() {
++        try {
++            List<Song> songs = SongRepository.loadAllLocalSongs();
++            totalSongsLabel.setText(String.valueOf(songs.size()));
++
++            long uniqueArtists = songs.stream()
++                    .map(Song::getArtist)
++                    .filter(a -> a != null && !a.isBlank())
++                    .distinct()
++                    .count();
++            uniqueArtistsLabel.setText(String.valueOf(uniqueArtists));
++
++            long uniqueGenres = songs.stream()
++                    .map(Song::getGenre)
++                    .filter(g -> g != null && !g.isBlank())
++                    .distinct()
++                    .count();
++            uniqueGenresLabel.setText(String.valueOf(uniqueGenres));
++
++        } catch (IOException ex) {
++            totalSongsLabel.setText("Error");
++            uniqueArtistsLabel.setText("Error");
++            uniqueGenresLabel.setText("Error");
++        }
++
++        try {
++            int albumCount = AlbumRepository.loadAllAlbums().size();
++            totalAlbumsLabel.setText(String.valueOf(albumCount));
++        } catch (IOException ex) {
++            totalAlbumsLabel.setText("Error");
++        }
++
++        try {
++            int playlistCount = PlaylistRepository.loadAllPlaylists().size();
++            totalPlaylistsLabel.setText(String.valueOf(playlistCount));
++        } catch (IOException ex) {
++            totalPlaylistsLabel.setText("Error");
++        }
++    }
++
++    @FXML
++    private void backToDashboard() throws IOException {
++        App.setRoot("dashboard");
++    }
++}
+\ No newline at end of file
+Index: .idea/compiler.xml
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+new file mode 100644
+--- /dev/null	(date 1776425795174)
++++ b/.idea/compiler.xml	(date 1776425795174)
+@@ -0,0 +1,13 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="CompilerConfiguration">
++    <annotationProcessing>
++      <profile name="Maven default annotation processors profile" enabled="true">
++        <sourceOutputDir name="target/generated-sources/annotations" />
++        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
++        <outputRelativeToContentRoot value="true" />
++        <module name="dsounds" />
++      </profile>
++    </annotationProcessing>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/vcs.xml
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+--- /dev/null	(date 1776176986199)
++++ b/.idea/vcs.xml	(date 1776176986199)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/jarRepositories.xml
+===================================================================
+diff --git a/.idea/jarRepositories.xml b/.idea/jarRepositories.xml
+new file mode 100644
+--- /dev/null	(date 1776425795271)
++++ b/.idea/jarRepositories.xml	(date 1776425795271)
+@@ -0,0 +1,20 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RemoteRepositoriesConfiguration">
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Central Repository" />
++      <option name="url" value="https://repo.maven.apache.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Maven Central repository" />
++      <option name="url" value="https://repo1.maven.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="jboss.community" />
++      <option name="name" value="JBoss Community repository" />
++      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
++    </remote-repository>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/encodings.xml
+===================================================================
+diff --git a/.idea/encodings.xml b/.idea/encodings.xml
+new file mode 100644
+--- /dev/null	(date 1776425795260)
++++ b/.idea/encodings.xml	(date 1776425795260)
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="Encoding">
++    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
++    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/libraries/lib.xml
+===================================================================
+diff --git a/.idea/libraries/lib.xml b/.idea/libraries/lib.xml
+new file mode 100644
+--- /dev/null	(date 1776178061812)
++++ b/.idea/libraries/lib.xml	(date 1776178061812)
+@@ -0,0 +1,10 @@
++<component name="libraryTable">
++  <library name="lib">
++    <CLASSES>
++      <root url="file://$PROJECT_DIR$/../javafx-sdk-26/lib" />
++    </CLASSES>
++    <JAVADOC />
++    <SOURCES />
++    <jarDirectory url="file://$PROJECT_DIR$/../javafx-sdk-26/lib" recursive="false" />
++  </library>
++</component>
+\ No newline at end of file
+Index: src/main/resources/dsounds/style.css
+===================================================================
+diff --git a/src/main/resources/dsounds/style.css b/src/main/resources/dsounds/style.css
+new file mode 100644
+--- /dev/null	(date 1776588956151)
++++ b/src/main/resources/dsounds/style.css	(date 1776588956151)
+@@ -0,0 +1,331 @@
++/* ===== DSOUNDS - DEEZER DARK THEME ===== */
++
++/* ----- Base ----- */
++.root {
++    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
++    -fx-font-size: 13px;
++    -fx-background-color: #191922;
++    -dsounds-primary: #a238ff;
++    -dsounds-primary-hover: #b85cff;
++    -dsounds-primary-dark: #7b1fd4;
++    -dsounds-danger: #ef5466;
++    -dsounds-danger-hover: #ff6b7a;
++    -dsounds-success: #1ed760;
++    -dsounds-warning: #ffb347;
++    -dsounds-text: #ffffff;
++    -dsounds-text-secondary: #a0a0b0;
++    -dsounds-text-muted: #6a6a7a;
++    -dsounds-border: #2a2a3a;
++    -dsounds-card-bg: #1e1e2e;
++    -dsounds-input-bg: #282838;
++    -dsounds-hover-bg: #2e2e42;
++}
++
++/* ----- Labels ----- */
++.label {
++    -fx-text-fill: -dsounds-text;
++}
++
++.title-label {
++    -fx-font-size: 26px;
++    -fx-font-weight: bold;
++    -fx-text-fill: -dsounds-text;
++}
++
++.subtitle-label {
++    -fx-font-size: 14px;
++    -fx-text-fill: -dsounds-text-secondary;
++}
++
++/* ----- Buttons ----- */
++.button {
++    -fx-background-color: -dsounds-primary;
++    -fx-text-fill: white;
++    -fx-background-radius: 20;
++    -fx-border-radius: 20;
++    -fx-padding: 9 22;
++    -fx-cursor: hand;
++    -fx-font-weight: bold;
++    -fx-font-size: 12px;
++    -fx-border-color: transparent;
++}
++
++.button:hover {
++    -fx-background-color: -dsounds-primary-hover;
++    -fx-effect: dropshadow(gaussian, rgba(162, 56, 255, 0.4), 12, 0, 0, 0);
++}
++
++.button:pressed {
++    -fx-background-color: -dsounds-primary-dark;
++}
++
++.button:disabled {
++    -fx-background-color: #3a3a4a;
++    -fx-text-fill: #5a5a6a;
++    -fx-cursor: default;
++}
++
++/* Danger button */
++.button-danger {
++    -fx-background-color: -dsounds-danger;
++}
++.button-danger:hover {
++    -fx-background-color: -dsounds-danger-hover;
++    -fx-effect: dropshadow(gaussian, rgba(239, 84, 102, 0.4), 12, 0, 0, 0);
++}
++
++/* Secondary / outline button */
++.button-secondary {
++    -fx-background-color: transparent;
++    -fx-text-fill: -dsounds-primary;
++    -fx-border-color: -dsounds-primary;
++    -fx-border-width: 2;
++    -fx-border-radius: 20;
++    -fx-background-radius: 20;
++}
++.button-secondary:hover {
++    -fx-background-color: -dsounds-primary;
++    -fx-text-fill: white;
++}
++
++/* ----- Text Fields & Areas ----- */
++.text-field, .password-field {
++    -fx-background-color: -dsounds-input-bg;
++    -fx-border-color: -dsounds-border;
++    -fx-border-radius: 8;
++    -fx-background-radius: 8;
++    -fx-padding: 10;
++    -fx-font-size: 13px;
++    -fx-text-fill: -dsounds-text;
++    -fx-prompt-text-fill: -dsounds-text-muted;
++}
++
++.text-field:focused, .password-field:focused {
++    -fx-border-color: -dsounds-primary;
++    -fx-border-width: 2;
++    -fx-background-color: #2a2a3e;
++}
++
++.text-area {
++    -fx-background-color: -dsounds-input-bg;
++    -fx-border-color: -dsounds-border;
++    -fx-border-radius: 8;
++    -fx-background-radius: 8;
++    -fx-font-size: 13px;
++    -fx-text-fill: -dsounds-text;
++    -fx-prompt-text-fill: -dsounds-text-muted;
++}
++
++.text-area:focused {
++    -fx-border-color: -dsounds-primary;
++    -fx-border-width: 2;
++}
++
++.text-area .content {
++    -fx-background-color: -dsounds-input-bg;
++    -fx-background-radius: 8;
++}
++
++.text-area:focused .content {
++    -fx-background-color: #2a2a3e;
++}
++
++/* ----- ComboBox ----- */
++.combo-box {
++    -fx-background-color: -dsounds-input-bg;
++    -fx-border-color: -dsounds-border;
++    -fx-border-radius: 8;
++    -fx-background-radius: 8;
++    -fx-padding: 4;
++}
++
++.combo-box .list-cell {
++    -fx-background-color: -dsounds-input-bg;
++    -fx-text-fill: -dsounds-text;
++}
++
++.combo-box-popup .list-view {
++    -fx-background-color: -dsounds-card-bg;
++    -fx-border-color: -dsounds-border;
++}
++
++.combo-box-popup .list-cell {
++    -fx-background-color: -dsounds-card-bg;
++    -fx-text-fill: -dsounds-text;
++    -fx-padding: 8 12;
++}
++
++.combo-box-popup .list-cell:filled:hover {
++    -fx-background-color: -dsounds-hover-bg;
++}
++
++.combo-box-popup .list-cell:filled:selected {
++    -fx-background-color: -dsounds-primary;
++    -fx-text-fill: white;
++}
++
++.combo-box .arrow-button {
++    -fx-background-color: transparent;
++}
++
++.combo-box .arrow {
++    -fx-background-color: -dsounds-text-secondary;
++}
++
++/* ----- ListView ----- */
++.list-view {
++    -fx-background-color: -dsounds-card-bg;
++    -fx-border-color: -dsounds-border;
++    -fx-border-radius: 8;
++    -fx-background-radius: 8;
++}
++
++.list-view .list-cell {
++    -fx-background-color: transparent;
++    -fx-text-fill: -dsounds-text;
++    -fx-padding: 10 14;
++}
++
++.list-view .list-cell:filled:selected {
++    -fx-background-color: -dsounds-primary;
++    -fx-text-fill: white;
++    -fx-background-radius: 6;
++}
++
++.list-view .list-cell:filled:hover:!selected {
++    -fx-background-color: -dsounds-hover-bg;
++    -fx-background-radius: 6;
++}
++
++.list-view .list-cell:empty {
++    -fx-background-color: transparent;
++}
++
++/* ----- CheckBox ----- */
++.check-box {
++    -fx-text-fill: -dsounds-text;
++}
++
++.check-box .box {
++    -fx-border-color: -dsounds-text-muted;
++    -fx-border-radius: 4;
++    -fx-background-radius: 4;
++    -fx-background-color: -dsounds-input-bg;
++}
++
++.check-box:selected .box {
++    -fx-background-color: -dsounds-primary;
++    -fx-border-color: -dsounds-primary;
++}
++
++.check-box:selected .mark {
++    -fx-background-color: white;
++}
++
++/* ----- Cards / VBox panels ----- */
++.card {
++    -fx-background-color: -dsounds-card-bg;
++    -fx-background-radius: 12;
++    -fx-border-radius: 12;
++    -fx-border-color: -dsounds-border;
++    -fx-padding: 20;
++    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 3);
++}
++
++/* ----- GridPane (stats page) ----- */
++.grid-pane {
++    -fx-background-color: -dsounds-card-bg;
++    -fx-background-radius: 12;
++    -fx-border-radius: 12;
++    -fx-border-color: -dsounds-border;
++    -fx-padding: 20;
++}
++
++/* ----- BorderPane ----- */
++.border-pane {
++    -fx-background-color: #191922;
++}
++
++/* ----- ScrollBar dark styling ----- */
++.scroll-bar:vertical .track,
++.scroll-bar:horizontal .track {
++    -fx-background-color: #1e1e2e;
++    -fx-border-color: transparent;
++}
++
++.scroll-bar:vertical .thumb,
++.scroll-bar:horizontal .thumb {
++    -fx-background-color: #3a3a4a;
++    -fx-background-radius: 10;
++}
++
++.scroll-bar:vertical .thumb:hover,
++.scroll-bar:horizontal .thumb:hover {
++    -fx-background-color: -dsounds-primary;
++}
++
++.scroll-bar .increment-button,
++.scroll-bar .decrement-button {
++    -fx-background-color: transparent;
++    -fx-padding: 0;
++}
++
++.scroll-bar .increment-arrow,
++.scroll-bar .decrement-arrow {
++    -fx-shape: "";
++    -fx-padding: 0;
++}
++
++/* ----- Tooltip ----- */
++.tooltip {
++    -fx-background-color: #2e2e42;
++    -fx-text-fill: -dsounds-text;
++    -fx-background-radius: 6;
++    -fx-border-radius: 6;
++    -fx-font-size: 12px;
++    -fx-padding: 8;
++}
++/* ----- Fix truncated buttons ----- */
++.button {
++    -fx-min-width: -fx-pref-width;
++    -fx-padding: 9 18;
++    -fx-text-overrun: clip;
++}
++
++/* Playlist playback buttons - need more space */
++.hbox .button {
++    -fx-min-width: 100;
++}
++/* ----- ImageView containers ----- */
++.image-view {
++    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
++}/* ----- Fix white corners on rounded elements ----- */
++.text-area, .text-field, .password-field {
++    -fx-background-insets: 0;
++    -fx-border-insets: 0;
++}
++
++.text-area .scroll-pane {
++    -fx-background-color: transparent;
++}
++
++.text-area .scroll-pane .viewport {
++    -fx-background-color: transparent;
++}
++
++.list-view .virtual-flow .clipped-container .sheet .list-cell {
++    -fx-background-insets: 0;
++}
++
++.list-view .placeholder .label {
++    -fx-text-fill: -dsounds-text-muted;
++}
++
++/* Force transparent backgrounds on internal containers */
++.scroll-pane {
++    -fx-background-color: transparent;
++}
++
++.scroll-pane .viewport {
++    -fx-background-color: transparent;
++}
+\ No newline at end of file
